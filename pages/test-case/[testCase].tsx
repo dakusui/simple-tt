@@ -56,7 +56,14 @@ export default function TestCaseRunsPage() {
                         <td>{run.fileName}</td>
                         <td>
                             {run.manualAnalysis ? (
-                                run.manualAnalysis
+                                <>
+                                    <span>{run.manualAnalysis}</span> <br />
+                                    <Link legacyBehavior href={`/edit-analysis?fileName=${encodeURIComponent(run.fileName)}&testCase=${encodeURIComponent(testCase as string)}`}>
+                                        <a style={{ color: "blue", textDecoration: "underline" }}>
+                                            Edit Manual Analysis
+                                        </a>
+                                    </Link>
+                                </>
                             ) : (
                                 <Link legacyBehavior href={`/analyze?fileName=${encodeURIComponent(run.fileName)}&testCase=${encodeURIComponent(testCase as string)}`}>
                                     <a style={{ color: "blue", textDecoration: "underline" }}>
