@@ -35,7 +35,7 @@ export default function TestCaseRunsPage() {
         <div style={{ maxWidth: "800px", margin: "auto", padding: "20px" }}>
             <h1>Test Runs for: {testCase}</h1>
             {message && <p>{message}</p>}
-            <table border="1" cellPadding="5">
+            <table border={1} cellPadding="5">
                 <thead>
                 <tr>
                     <th>Test Suite</th>
