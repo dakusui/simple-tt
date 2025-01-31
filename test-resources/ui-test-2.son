@@ -1,0 +1,27 @@
+{
+  "testSuite": "UI Tests",
+  "executionTime": {
+    "start": "2025-02-04T15:00:00Z",
+    "end": "2025-02-04T15:20:00Z"
+  },
+  "testCases": [
+    {
+      "testCase": "Dark mode toggle works",
+      "executionTime": {
+        "start": "2025-02-04T15:02:00Z",
+        "end": "2025-02-04T15:02:03Z"
+      },
+      "testResult": "PASS",
+      "report": "Dark mode toggles correctly between light/dark themes."
+    },
+    {
+      "testCase": "Forgot password flow sends reset email",
+      "executionTime": {
+        "start": "2025-02-04T15:10:00Z",
+        "end": "2025-02-04T15:10:05Z"
+      },
+      "testResult": "PASS",
+      "report": "Reset email is sent and received successfully."
+    }
+  ]
+}
