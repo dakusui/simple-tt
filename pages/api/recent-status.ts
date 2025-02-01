@@ -4,7 +4,7 @@ import path from 'path';
 
 const DATA_DIR = path.join(process.cwd(), 'data');
 const TESTRUNS_DIR = path.join(DATA_DIR, 'test-runs');
-const ANALYSES_DIR = path.join(DATA_DIR, 'manual-analyses');
+const DIAGNOSES_DIR = path.join(DATA_DIR, 'triage-diagnoses');
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== 'GET') {
@@ -35,9 +35,9 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
         });
 
         // (Optional) Merge manual analysis
-        const analysisFiles = fs.readdirSync(ANALYSES_DIR).filter(file => file.endsWith('.json'));
-        analysisFiles.forEach(file => {
-            const filePath = path.join(ANALYSES_DIR, file);
+        const diagnosisFiles = fs.readdirSync(DIAGNOSES_DIR).filter(file => file.endsWith('.json'));
+        diagnosisFiles.forEach(file => {
+            const filePath = path.join(DIAGNOSES_DIR, file);
             const analysisData = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
 
             analysisData.analyses.forEach((entry: any) => {

@@ -3,7 +3,7 @@ import fs from 'fs';
 import path from 'path';
 
 const DATA_DIR = path.join(process.cwd(), 'data');
-const ANALYSES_DIR = path.join(DATA_DIR, 'manual-analyses');
+const ANALYSES_DIR = path.join(DATA_DIR, 'triage-diagnoses');
 
 // Ensure the analysis directory exists
 if (!fs.existsSync(ANALYSES_DIR)) {
