@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import fs from 'fs';
 import path from 'path';
+import { stringify } from 'querystring';
 
 const DATA_DIR = path.join(process.cwd(), 'data');
 const TESTRUNS_DIR  = path.join(DATA_DIR, 'test-runs');
@@ -51,6 +52,6 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
 
         res.status(200).json({ testCase, runs });
     } catch (error) {
-        res.status(500).json({ error: "Internal Server Error" });
+        res.status(500).json({ error: "Internal Server Error: " + stringify(error)});
     }
 }
