@@ -51,7 +51,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
       const filePath = path.join(DIAGNOSES_DIR, file);
       const analysisData = JSON.parse(fs.readFileSync(filePath, "utf-8"));
 
-      analysisData.analyses.forEach((entry: any) => {
+      analysisData.analyses.forEach((entry: {testCase: string, analysis: string}) => {
         if (testCasesMap[entry.testCase]) {
           testCasesMap[entry.testCase].manualAnalysis = entry.analysis;
         }

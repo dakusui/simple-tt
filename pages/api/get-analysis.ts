@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import fs from "fs";
 import path from "path";
+import { stringify } from "querystring";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const ANALYSES_DIR = path.join(DATA_DIR, "triage-diagnoses");
@@ -29,13 +30,13 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
 
     const analysisData = JSON.parse(fs.readFileSync(analysisFilePath, "utf-8"));
     const analysisEntry = analysisData.analyses.find(
-      (entry: any) => entry.testCase === testCase
+      (entry: { testCase: string }) => entry.testCase === testCase
     );
 
     res
       .status(200)
       .json({ analysis: analysisEntry ? analysisEntry.analysis : "" });
   } catch (error) {
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(500).json({ error: "Internal Server Error: <" + stringify(error) + ">"});
   }
 }

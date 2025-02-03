@@ -3,11 +3,10 @@ import { useRouter } from "next/router";
 
 export default function AnalyzePage() {
     const router = useRouter();
-    const { fileName, testCase } = router.query; // Pre-filled values from Feature 4
+    const {fileName, testCase } = router.query; // Pre-filled values from Feature 4
     const [files, setFiles] = useState<string[]>([]);
-    const [selectedFile, setSelectedFile] = useState(fileName || "");
-    const [testCases, setTestCases] = useState<string[]>([]);
-    const [selectedTestCase, setSelectedTestCase] = useState(testCase || "");
+    const [selectedFile, setSelectedFile] = useState<string>(fileName?.toString() || "");
+    const [selectedTestCase, setSelectedTestCase] = useState<string>(testCase?.toString() || "");
     const [manualAnalysis, setManualAnalysis] = useState("");
     const [message, setMessage] = useState("");
 
