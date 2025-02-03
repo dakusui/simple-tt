@@ -14,8 +14,7 @@ export default function StatusPage() {
     const [message, setMessage] = useState("");
 
     useEffect(() => {
-        fetch("/api/recent-status")
-            .then(res => res.json())
+        fetch("/api/recent-status")            .then(res => res.json())
             .then(data => setTestCases(Array.isArray(data) ? data : []))
             .catch(() => setMessage("Failed to load test case statuses"));
     }, []);

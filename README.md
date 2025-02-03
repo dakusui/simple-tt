@@ -39,4 +39,8 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 
 ```
 npm install --save-dev eslint eslint-plugin-prettier eslint-config-prettier
+
+npx eslint --init
+
 ```
+
