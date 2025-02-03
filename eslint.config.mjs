@@ -1,7 +1,6 @@
 import globals from "globals";
 import pluginJs from "@eslint/js";
 import tseslint from "typescript-eslint";
-import prettier from "prettier";
 
 /** @type {import('eslint').Linter.FlatConfig[]} */
 export default [
