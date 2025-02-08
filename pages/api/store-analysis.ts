@@ -16,11 +16,6 @@ function createTestEntry(testCase: string, analysis: string): TestEntry {
   };
 }
 
-// Ensure the analysis directory exists
-if (!fs.existsSync(ANALYSES_DIR)) {
-  fs.mkdirSync(ANALYSES_DIR, { recursive: true });
-}
-
 /**
  * Handles a request `req` storing its response in `res`.
  *
