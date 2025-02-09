@@ -4,17 +4,20 @@ import path from "path";
 import { stringify } from "querystring";
 import { TestCaseRun } from "../../models/TestCaseRun";
 import { TESTRUNS_DIR, ANALYSES_DIR } from "../../models/constants";
+import {
+  requireArgument,
+  isDefinedString,
+  IllegalArgumentException,
+  requireMethodIsGET,
+  UnsupportedMethodException
+} from "../../models/validations";
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== "GET") {
-    return res.status(405).json({ error: "Method Not Allowed" });
-  }
-
   try {
+    requireMethodIsGET(req);
+
     const { testCase } = req.query;
-    if (!testCase || typeof testCase !== "string") {
-      return res.status(400).json({ error: "Missing or invalid test case name" });
-    }
+    requireArgument(testCase, v => isDefinedString(v));
 
     const testRunFiles = fs.readdirSync(TESTRUNS_DIR).filter(file => file.endsWith(".json"));
     const runs: TestCaseRun[] = [];
@@ -55,6 +58,12 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
 
     res.status(200).json({ testCase, runs });
   } catch (error) {
-    res.status(500).json({ error: "Internal Server Error: " + stringify(error) });
+    if (error instanceof IllegalArgumentException) {
+      res.status(400).json({ error: "Missing or invalid test case name" });
+    } else if (error instanceof UnsupportedMethodException) {
+      res.status(405).json({ error: "Method Not Allowed" });
+    } else {
+      res.status(500).json({ error: "Internal Server Error: " + stringify(error) });
+    }
   }
 }

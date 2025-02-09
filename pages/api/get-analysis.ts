@@ -7,7 +7,7 @@ import {
   IllegalArgumentException,
   requireArgument,
   requireMethodIsGET,
-  isDefined,
+  isDefinedString,
   UnsupportedMethodException
 } from "../../models/validations";
 
@@ -16,13 +16,9 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     requireMethodIsGET(req);
     const { fileName, testCase } = requireArgument(
       req.query,
-      q =>
-        isDefined(q.fileName) &&
-        typeof q.fileName === "string" &&
-        isDefined(q.testCase) &&
-        typeof q.testCase === "string"
-    ) as {fileName: string, testCase: string};
- 
+      q => isDefinedString(q.fileName) && isDefinedString(q.testCase)
+    ) as { fileName: string; testCase: string };
+
     const analysisFilePath = path.join(ANALYSES_DIR, fileName);
 
     if (!fs.existsSync(analysisFilePath)) {
