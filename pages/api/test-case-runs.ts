@@ -1,23 +1,19 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import fs from "fs";
 import path from "path";
-import { stringify } from "querystring";
 import { TestCaseRun } from "../../models/TestCaseRun";
 import { TESTRUNS_DIR, ANALYSES_DIR } from "../../models/constants";
 import {
   requireArgument,
   isDefinedString,
-  IllegalArgumentException,
   requireMethodIsGET,
-  UnsupportedMethodException
+  handleError
 } from "../../models/validations";
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     requireMethodIsGET(req);
-
-    const { testCase } = req.query;
-    requireArgument(testCase, v => isDefinedString(v));
+    const { testCase } = requireArgument(req.query, v => isDefinedString(v));
 
     const testRunFiles = fs.readdirSync(TESTRUNS_DIR).filter(file => file.endsWith(".json"));
     const runs: TestCaseRun[] = [];
@@ -58,12 +54,6 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
 
     res.status(200).json({ testCase, runs });
   } catch (error) {
-    if (error instanceof IllegalArgumentException) {
-      res.status(400).json({ error: "Missing or invalid test case name" });
-    } else if (error instanceof UnsupportedMethodException) {
-      res.status(405).json({ error: "Method Not Allowed" });
-    } else {
-      res.status(500).json({ error: "Internal Server Error: " + stringify(error) });
-    }
+    handleError(error, res);
   }
 }

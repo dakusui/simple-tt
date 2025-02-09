@@ -2,13 +2,11 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { ANALYSES_DIR } from "../../models/constants";
 import fs from "fs";
 import path from "path";
-import { stringify } from "querystring";
 import {
-  IllegalArgumentException,
   requireArgument,
   requireMethodIsGET,
   isDefinedString,
-  UnsupportedMethodException
+  handleError
 } from "../../models/validations";
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -30,12 +28,6 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
 
     res.status(200).json({ analysis: analysisEntry ? analysisEntry.analysis : "" });
   } catch (error) {
-    if (error instanceof IllegalArgumentException) {
-      res.status(400).json({ error: "Invalid file name or test case" });
-    } else if (error instanceof UnsupportedMethodException) {
-      res.status(405).json({ error: "Method Not Allowed" });
-    } else {
-      res.status(500).json({ error: "Internal Server Error: <" + stringify(error) + ">" });
-    }
+    handleError(error, res);
   }
 }

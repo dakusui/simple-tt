@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { ANALYSES_DIR } from "../../models/constants";
-import { requireArgument, requireMethodIsPOST, IllegalArgumentException } from "../../models/validations";
+import { requireArgument, requireMethodIsPOST, handleError } from "../../models/validations";
 import fs from "fs";
 import path from "path";
 
@@ -24,7 +24,7 @@ function createTestEntry(testCase: string, analyses: string): TestEntry {
  */
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
-    requireMethodIsPOST(req)
+    requireMethodIsPOST(req);
     const { fileName, testCase, analysis } = requireArgument(req.body, b => b.fileName && b.testCase && b.analysis);
 
     const analysisFilePath = path.join(ANALYSES_DIR, fileName);
@@ -37,15 +37,13 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     if (existingEntry) {
       existingEntry.analyses = analysis;
     }
-     analysisData.analyses.push({ testCase, analyses: analysis });
-    
+    analysisData.analyses.push({ testCase, analyses: analysis });
+
     fs.writeFileSync(analysisFilePath, JSON.stringify(analysisData, null, 2), "utf-8");
 
     res.status(200).json({ message: "Manual analysis saved successfully", fileName });
   } catch (error) {
-    if (error instanceof IllegalArgumentException) {
-      res.status(400).json({ error: error.message });
-    } else res.status(500).json({ error: "Internal Server Error: <" + error + ">" });
+    handleError(error, res);
   }
 }
 
@@ -58,4 +56,3 @@ function readAnalysisDataFromFile(fileName): { fileName: string; analyses: TestE
   }
   return JSON.parse(fs.readFileSync(fileName, "utf-8"));
 }
-

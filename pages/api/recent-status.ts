@@ -2,9 +2,8 @@ import { NextApiRequest, NextApiResponse } from "next";
 import fs from "fs";
 import path from "path";
 import { TestCaseRun } from "../../models/TestCaseRun";
-import { stringify } from "querystring";
 import { TESTRUNS_DIR, ANALYSES_DIR } from "../../models/constants";
-import { requireMethodIsGET, UnsupportedMethodException } from "../../models/validations";
+import { handleError, requireMethodIsGET } from "../../models/validations";
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
@@ -48,10 +47,6 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
 
     res.status(200).json(Object.values(testCasesMap));
   } catch (error) {
-    if (error instanceof UnsupportedMethodException) {
-      return res.status(405).json({ error: "Method Not Allowed" });
-    } else {
-      res.status(500).json({ error: "Internal Server Error: <" + stringify(error) + ">" });
-    }
+    handleError(error, res);
   }
 }
