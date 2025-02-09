@@ -5,7 +5,7 @@ import { TestCaseRun } from "../../models/TestCaseRun";
 import { TESTRUNS_DIR, ANALYSES_DIR } from "../../models/constants";
 import {
   requireArgument,
-  isDefinedString,
+  isDefined,
   requireMethodIsGET,
   handleError
 } from "../../models/validations";
@@ -13,7 +13,7 @@ import {
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     requireMethodIsGET(req);
-    const { testCase } = requireArgument(req.query, v => isDefinedString(v));
+    const { testCase } = requireArgument(req.query, v => isDefined(v));
 
     const testRunFiles = fs.readdirSync(TESTRUNS_DIR).filter(file => file.endsWith(".json"));
     const runs: TestCaseRun[] = [];
@@ -54,6 +54,6 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
 
     res.status(200).json({ testCase, runs });
   } catch (error) {
-    handleError(error, res);
+    return handleError(error, res);
   }
 }
