@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { ANALYSES_DIR } from "../../models/constants";
-import { requireArgument, IllegalArgumentException } from "../../models/validations";
+import { requireArgument, requireMethodIsPOST, IllegalArgumentException } from "../../models/validations";
 import fs from "fs";
 import path from "path";
 
@@ -23,11 +23,8 @@ function createTestEntry(testCase: string, analyses: string): TestEntry {
  * @param res - The response.
  */
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method Not Allowed" });
-  }
-
   try {
+    requireMethodIsPOST(req)
     const { fileName, testCase, analysis } = requireArgument(req.body, b => b.fileName && b.testCase && b.analysis);
 
     const analysisFilePath = path.join(ANALYSES_DIR, fileName);
