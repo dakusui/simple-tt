@@ -5,9 +5,10 @@ import { TestCaseRun } from "../../../models/TestCaseRun";
 import { TESTRUNS_DIR, ANALYSES_DIR } from "../../../models/constants";
 import { handleError } from "../../../models/validations";
 
-export async function GET(req: NextRequest, { params }: { params: { testCase: string } }) {
+export async function GET(req: NextRequest) {
   try {
-    const { testCase } = params;
+    const { searchParams } = req.nextUrl;
+    const testCase = decodeURIComponent(searchParams.get("testCase") as string);
     const testRunFiles = fs.readdirSync(TESTRUNS_DIR).filter(file => file.endsWith(".json"));
     const runs: TestCaseRun[] = [];
 

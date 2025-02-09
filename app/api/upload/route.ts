@@ -1,21 +1,18 @@
-import { NextApiRequest, NextApiResponse } from "next";
+import { NextRequest } from "next/server";
 import { TESTRUNS_DIR } from "../../../models/constants";
 import fs from "fs";
 import path from "path";
-import {
-  handleError,
-  isDefined,
-  requireArgument,
-  requireMethodIsPOST,
-} from "../../../models/validations";
+import { handleError } from "../../../models/validations";
+import { NextResponse } from "next/server";
 
-export default function handler(req: NextApiRequest, res: NextApiResponse) {
+export default function POST(req: NextRequest) {
   try {
-    requireMethodIsPOST(req);
-    const testRun = requireArgument(
-      req.body,
-      v => isDefined(v) && isDefined(v.testSuite) && isDefined(v.executionTime) && isDefined(v.testCases)
-    );
+    const { searchParams } = req.nextUrl;
+    const testRun = {
+      testSuite: searchParams.get("fileName") as string,
+      executionTime: searchParams.get("exectutionTime") as string,
+      analysis: searchParams.get("analysis") as string
+    };
     if (!fs.existsSync(TESTRUNS_DIR)) {
       fs.mkdirSync(TESTRUNS_DIR, { recursive: true });
     }
@@ -24,8 +21,8 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
 
     fs.writeFileSync(filePath, JSON.stringify(testRun, null, 2), "utf-8");
 
-    res.status(200).json({ message: "Test run uploaded successfully", fileName });
+    return NextResponse.json({ message: "Test run uploaded successfully", fileName });
   } catch (error) {
-    handleError(error, res);
+    return handleError(error);
   }
 }

@@ -1,6 +1,6 @@
-import { NextApiRequest, NextApiResponse } from "next";
+import { NextRequest, NextResponse } from "next/server";
 import { ANALYSES_DIR } from "../../../models/constants";
-import { requireArgument, requireMethodIsPOST, handleError } from "../../../models/validations";
+import { handleError } from "../../../models/validations";
 import fs from "fs";
 import path from "path";
 
@@ -22,10 +22,12 @@ function createTestEntry(testCase: string, analyses: string): TestEntry {
  * @param req - The request.
  * @param res - The response.
  */
-export default function handler(req: NextApiRequest, res: NextApiResponse) {
+export default function POST(req: NextRequest) {
   try {
-    requireMethodIsPOST(req);
-    const { fileName, testCase, analysis } = requireArgument(req.body, b => b.fileName && b.testCase && b.analysis);
+    const { searchParams } = req.nextUrl
+    const fileName = searchParams.get("fileName") as string;
+    const testCase = searchParams.get("testCase") as string;
+    const analysis = searchParams.get("analysis") as string;
 
     const analysisFilePath = path.join(ANALYSES_DIR, fileName);
     const analysisData: { fileName: string; analyses: TestEntry[] } = readAnalysisDataFromFile(analysisFilePath);
@@ -41,9 +43,10 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
 
     fs.writeFileSync(analysisFilePath, JSON.stringify(analysisData, null, 2), "utf-8");
 
-    res.status(200).json({ message: "Manual analysis saved successfully", fileName });
+
+    return NextResponse.json({ message: "Manual analysis saved successfully", fileName });
   } catch (error) {
-    handleError(error, res);
+    return handleError(error);
   }
 }
 
