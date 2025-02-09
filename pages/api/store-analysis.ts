@@ -1,18 +1,17 @@
 import { NextApiRequest, NextApiResponse } from "next";
+import { ANALYSES_DIR } from "../../models/constants";
+import { requireArgument, IllegalArgumentException } from "../../models/validations";
 import fs from "fs";
 import path from "path";
 
-const DATA_DIR = path.join(process.cwd(), "data");
-const ANALYSES_DIR = path.join(DATA_DIR, "triage-diagnoses");
-
 type TestEntry = {
   testCase: string;
-  analysis: string;
+  analyses: string;
 };
-function createTestEntry(testCase: string, analysis: string): TestEntry {
+function createTestEntry(testCase: string, analyses: string): TestEntry {
   return {
     testCase,
-    analysis
+    analyses
   };
 }
 
@@ -29,36 +28,37 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
   }
 
   try {
-    const { fileName, testCase, analysis } = req.body;
-
-    if (!fileName || !testCase || !analysis) {
-      return res.status(400).json({ error: "Missing required fields" });
-    }
+    const { fileName, testCase, analysis } = requireArgument(req.body, b => b.fileName && b.testCase && b.analysis);
 
     const analysisFilePath = path.join(ANALYSES_DIR, fileName);
-    let analysisData: { fileName: string; analyses: TestEntry[] } = {
-      fileName,
-      analyses: []
-    };
-
-    if (fs.existsSync(analysisFilePath)) {
-      analysisData = JSON.parse(fs.readFileSync(analysisFilePath, "utf-8"));
-    }
+    const analysisData: { fileName: string; analyses: TestEntry[] } = readAnalysisDataFromFile(analysisFilePath);
 
     // Check if test case already has an analysis
     const existingEntry: TestEntry = analysisData.analyses
-      .map(each => createTestEntry(each.testCase, each.analysis))
-      .find(entry => entry.testCase === testCase) || { testCase, analysis };
+      .map(each => createTestEntry(each.testCase, each.analyses))
+      .find(entry => entry.testCase === testCase) || { testCase: testCase, analyses: analysis };
     if (existingEntry) {
-      existingEntry.analysis = analysis; // Update existing analysis
-    } else {
-      analysisData.analyses.push({ testCase, analysis });
+      existingEntry.analyses = analysis;
     }
-
+     analysisData.analyses.push({ testCase, analyses: analysis });
+    
     fs.writeFileSync(analysisFilePath, JSON.stringify(analysisData, null, 2), "utf-8");
 
     res.status(200).json({ message: "Manual analysis saved successfully", fileName });
   } catch (error) {
-    res.status(500).json({ error: "Internal Server Error: <" + error + ">" });
+    if (error instanceof IllegalArgumentException) {
+      res.status(400).json({ error: error.message });
+    } else res.status(500).json({ error: "Internal Server Error: <" + error + ">" });
   }
 }
+
+function readAnalysisDataFromFile(fileName): { fileName: string; analyses: TestEntry[] } {
+  if (!fs.existsSync(fileName)) {
+    return {
+      fileName,
+      analyses: []
+    };
+  }
+  return JSON.parse(fs.readFileSync(fileName, "utf-8"));
+}
+

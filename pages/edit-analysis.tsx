@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 
 export default function EditAnalysisPage() {
     const router = useRouter();
-    const { fileName, testCase } = router.query;
+    const {fileName, testCase } = router.query;
     const [manualAnalysis, setManualAnalysis] = useState("");
     const [message, setMessage] = useState("");
 

@@ -3,10 +3,7 @@ import fs from "fs";
 import path from "path";
 import { TestCaseRun } from "../../models/TestCaseRun";
 import { stringify } from "querystring";
-
-const DATA_DIR = path.join(process.cwd(), "data");
-const TESTRUNS_DIR = path.join(DATA_DIR, "test-runs");
-const DIAGNOSES_DIR = path.join(DATA_DIR, "triage-diagnoses");
+import { TESTRUNS_DIR, ANALYSES_DIR } from "../../models/constants";
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "GET") {
@@ -45,10 +42,10 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
 
     // (Optional) Merge manual analysis
     const diagnosisFiles = fs
-      .readdirSync(DIAGNOSES_DIR)
+      .readdirSync(ANALYSES_DIR)
       .filter((file) => file.endsWith(".json"));
     diagnosisFiles.forEach((file) => {
-      const filePath = path.join(DIAGNOSES_DIR, file);
+      const filePath = path.join(ANALYSES_DIR, file);
       const analysisData = JSON.parse(fs.readFileSync(filePath, "utf-8"));
 
       analysisData.analyses.forEach((entry: {testCase: string, analysis: string}) => {
