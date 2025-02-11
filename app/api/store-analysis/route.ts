@@ -3,7 +3,6 @@ import { ANALYSES_DIR } from "../../../models/constants";
 import { handleError } from "../../../models/validations";
 import fs from "fs";
 import path from "path";
-
 type TestEntry = {
   testCase: string;
   analyses: string;
@@ -22,15 +21,14 @@ function createTestEntry(testCase: string, analyses: string): TestEntry {
  * @param req - The request.
  * @param res - The response.
  */
-export default function POST(req: NextRequest) {
+export async function POST(req: NextRequest) {
   try {
-    const { searchParams } = req.nextUrl
-    const fileName = searchParams.get("fileName") as string;
-    const testCase = searchParams.get("testCase") as string;
-    const analysis = searchParams.get("analysis") as string;
+    const body  = await req.json();
+    const { fileName, testCase, analysis } = body;
 
     const analysisFilePath = path.join(ANALYSES_DIR, fileName);
     const analysisData: { fileName: string; analyses: TestEntry[] } = readAnalysisDataFromFile(analysisFilePath);
+
 
     // Check if test case already has an analysis
     const existingEntry: TestEntry = analysisData.analyses

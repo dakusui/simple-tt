@@ -1,14 +1,14 @@
 import fs from "fs";
 import path from "path";
 import { NextResponse } from "next/server";
-import { TestCaseRun } from "../../../models/TestCaseRun";
+import { CompatTestCaseRun } from "../../../models/CompatTestCaseRun";
 import { TESTRUNS_DIR, ANALYSES_DIR } from "../../../models/constants";
 import { handleError } from "../../../models/validations";
 
 export async function GET() {
   try {
     const testRunFiles = fs.readdirSync(TESTRUNS_DIR).filter(file => file.endsWith(".json"));
-    const testCasesMap: Record<string, TestCaseRun> = {};
+    const testCasesMap: Record<string, CompatTestCaseRun> = {};
 
     testRunFiles.forEach(file => {
       const filePath = path.join(TESTRUNS_DIR, file);
@@ -19,7 +19,7 @@ export async function GET() {
           !testCasesMap[testCase.testCase] ||
           new Date(data.executionTime.end) > new Date(testCasesMap[testCase.testCase].executionTime)
         ) {
-          testCasesMap[testCase.testCase] = new TestCaseRun(
+          testCasesMap[testCase.testCase] = new CompatTestCaseRun(
             filePath,
             data.testSuite,
             testCase.testCase,

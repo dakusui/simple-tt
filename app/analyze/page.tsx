@@ -31,7 +31,7 @@ export default function AnalyzePage({ params }: {params: { fileName: string; tes
 
   const handleSubmit = async () => {
     if (!selectedFile || !selectedTestCase || !manualAnalysis.trim()) {
-      setMessage("Please fill in all fields.");
+      setMessage("Please fill in all fields.: " + "selectedFile: <" + selectedFile + ">, selectedTestCase: <" + selectedTestCase + ">, manualAnalysis: <" + manualAnalysis + ">");
       return;
     }
 
