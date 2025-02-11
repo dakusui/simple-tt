@@ -1,0 +1,27 @@
+{
+  "testSuite": "Performance Tests",
+  "executionTime": {
+    "start": "2025-02-05T11:00:00Z",
+    "end": "2025-02-05T11:30:00Z"
+  },
+  "testCases": [
+    {
+      "testCase": "Response time for GET /dashboard",
+      "executionTime": {
+        "start": "2025-02-05T11:05:00Z",
+        "end": "2025-02-05T11:05:10Z"
+      },
+      "testResult": "PASS",
+      "report": "Average response time: 250ms (acceptable range)."
+    },
+    {
+      "testCase": "Memory usage under 1GB during peak load",
+      "executionTime": {
+        "start": "2025-02-05T11:20:00Z",
+        "end": "2025-02-05T11:20:30Z"
+      },
+      "testResult": "FAIL",
+      "report": "Memory usage exceeded 1GB limit under peak conditions."
+    }
+  ]
+}

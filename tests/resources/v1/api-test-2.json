@@ -1,0 +1,27 @@
+{
+  "testSuite": "API Tests",
+  "executionTime": {
+    "start": "2025-02-02T14:15:00Z",
+    "end": "2025-02-02T14:30:00Z"
+  },
+  "testCases": [
+    {
+      "testCase": "GET /users/{id} returns 404 for non-existent user",
+      "executionTime": {
+        "start": "2025-02-02T14:17:00Z",
+        "end": "2025-02-02T14:17:02Z"
+      },
+      "testResult": "PASS",
+      "report": "API correctly returns 404 Not Found for missing users."
+    },
+    {
+      "testCase": "POST /orders creates an order",
+      "executionTime": {
+        "start": "2025-02-02T14:20:00Z",
+        "end": "2025-02-02T14:20:05Z"
+      },
+      "testResult": "FAIL",
+      "report": "500 Internal Server Error. Suspected database issue."
+    }
+  ]
+}
