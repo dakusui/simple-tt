@@ -1,7 +1,6 @@
 import path from "path";
 import { ensureDirectoryExists, saveFile } from "./utils";
-import { stringify } from "querystring";
-import { existsSync, readdir } from "fs";
+import { existsSync, readdirSync } from "fs";
 import { readJsonSync } from "./utils";
 
 export class TestSuite {
@@ -214,9 +213,9 @@ export class TestManager {
   storeTestSuite(testSuite: TestSuite): void {
     const testSuitesDir = this.testSuiteDirFor(testSuite.id);
     ensureDirectoryExists(testSuitesDir);
-    saveFile(path.join(this.baseDir, "testSuite.json"), stringify({ description: testSuite.description }));
+    saveFile(path.join(this.baseDir, "testSuite.json"), JSON.stringify({ description: testSuite.description }));
     for (const each of testSuite.testCases) {
-      saveFile(path.join(testSuitesDir, "testCase-" + each.id + ".json"), stringify({ description: each.description }));
+      saveFile(path.join(testSuitesDir, "testCase-" + each.id + ".json"), JSON.stringify({ description: each.description }));
     }
   }
 
@@ -230,7 +229,7 @@ export class TestManager {
       this.ensureDefinitionExists(eachTestCaseRun);
       saveFile(
         path.join(testSuiteDirForRun, "testCase-" + eachTestCaseRun.testCaseId) + ".json",
-        stringify({
+        JSON.stringify({
           result: eachTestCaseRun.result,
           environment: JSON.stringify(env),
           duration: JSON.stringify(eachTestCaseRun.duration)
@@ -274,73 +273,39 @@ export class TestManager {
   }
 
   testSuites(): string[] {
-    const testSuitesDir: string = this.testSuitesDir();
-    const ret: string[] = [];
-    readdir(testSuitesDir, (err, files) => {
-      for (const f of files) {
-        if (!f.startsWith("testSuite-")) continue;
-        ret.push(f.replace("testSuite-", "").replace("/", ""));
-      }
-    });
-    return ret;
+    return this.listIdentifiers(this.testSuitesDir(), "testSuite-", /^testSuite-/);
   }
 
   testCasesFor(testSuiteId: string): string[] {
-    const testCasesDir: string = this.testSuiteDirFor(testSuiteId);
-    const ret: string[] = [];
-    readdir(testCasesDir, (err, files) => {
-      for (const f of files) {
-        if (!f.startsWith("testCase-")) continue;
-        ret.push(f.replace("testCase-", "").replace(".json", ""));
-      }
-    });
-    return ret;
+    return this.listIdentifiers(this.testSuiteDirFor(testSuiteId), "testCase-", /^testCase-/, /.json$/);
   }
 
-  triagedRuns() {
-    const ret: string[] = [];
-    readdir(this.triagesDir(), (err, files) => {
-      for (const value of files) {
-        if (!value.startsWith("run-")) continue;
-        ret.push(value.replace("run-", "").replace("/", ""));
-      }
-    });
-    return ret;
+  triagedRuns(): string[] {
+    return this.listIdentifiers(this.triagesDir(), "run-", "run-");
   }
 
   runs(): string[] {
-    const ret: string[] = [];
-    readdir(this.runsDir(), (err, files) => {
-      for (const value of files) {
-        if (!value.startsWith("run-")) continue;
-        ret.push(value.replace("run-", "").replace("/", ""));
-      }
-    });
-    return ret;
+    return this.listIdentifiers(this.runsDir(), "run-", /^run-/);
   }
 
   testSuitesForRun(runId: string): string[] {
-    const ret: string[] = [];
-    readdir(this.runDirFor(runId), (err, files) => {
-      for (const value of files) {
-        if (!value.startsWith("testSuite-")) continue;
-        ret.push(value.replace("testSuite-", "").replace("/", ""));
-      }
-    });
-    return ret;
+    return this.listIdentifiers(this.runDirFor(runId), "testSuite-", "testSuite-");
   }
 
   testCasesForRun(runId: string, testSuiteId): string[] {
-    const ret: string[] = [];
-    readdir(path.join(this.runDirFor(runId), "testSuite-" + testSuiteId), (err, files) => {
-      for (const value of files) {
-        if (!value.startsWith("run-")) {
-          continue;
+    return this.listIdentifiers(path.join(this.runDirFor(runId), "testSuite-" + testSuiteId), "run-");
+  }
+
+  listIdentifiers(base: string, prefix: string, ...extras: (RegExp | string)[]): string[] {
+    return readdirSync(base)
+      .filter(f => f.startsWith(prefix))
+      .map(f => {
+        let ret: string = f;
+        for (const r of extras) {
+          ret = ret.replace(r, "");
         }
-        ret.push(value.replace("run-", "").replace("/", ""));
-      }
-    });
-    return ret;
+        return ret;
+      });
   }
 
   existsTestCaseRun(runId: string, testSuiteId: string, testCaseId: string): boolean {
@@ -352,7 +317,7 @@ export class TestManager {
   }
 
   pathForTestCaseRun(runId: string, testSuiteId: string, testCaseId: string): string {
-    return path.join(this.runDirFor(runId), path.join("testSuite-" + testSuiteId, "run-" + testCaseId));
+    return  path.join(this.runDirFor(runId), path.join("testSuite-" + testSuiteId, "testCase-" + testCaseId + ".json"));
   }
 
   pathForTriage(runId: string, testSuiteId: string, testCaseId: string): string {
@@ -364,7 +329,7 @@ export class TestManager {
   }
 
   runDirFor(runId: string) {
-    return path.join(this.runsDir(), "runId-" + runId);
+    return path.join(this.runsDir(), "run-" + runId);
   }
 
   runsDir() {

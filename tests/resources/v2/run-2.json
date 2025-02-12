@@ -10,8 +10,17 @@
       "testCaseId": "whenPerformDailyOperation_thenFinishesSuccessfully",
       "result": "PASS",
       "duration": {
-        "begin": "2025-01-31T12:30:10Z",
-        "end": "2025-01-31T12:30:10Z"
+        "start": "2025-02-11T10:30:10Z",
+        "end": "2025-02-11T10:30:10Z"
+      }
+    },
+    {
+      "testSuiteId": "com.github.dakusui.sample_tt.example.SecondTest",
+      "testCaseId": "whenPerformWeeklyOperation_thenFinishesSuccessfully",
+      "result": "PASS",
+      "duration": {
+        "start": "2025-02-09T11:30:10Z",
+        "end": "2025-02-10T11:30:10Z"
       }
     }
   ]

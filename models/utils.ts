@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, writeFileSync, readFileSync } from "fs";
 export function ensureDirectoryExists(dirName: string) {
-  if (!existsSync(dirName)) mkdirSync(dirName);
+  if (!existsSync(dirName)) mkdirSync(dirName, {recursive: true});
 }
 
 export function saveFile(fileName: string, content: string) {
@@ -9,5 +9,6 @@ export function saveFile(fileName: string, content: string) {
 
 export function readJsonSync(filePath: string) {
   const fileContent = readFileSync(filePath, "utf-8");
+  console.log("fileContent:<" + fileContent + ">");
   return JSON.parse(fileContent);
 }

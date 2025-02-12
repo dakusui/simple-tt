@@ -1,8 +1,8 @@
 {
   "environment": {
-    "machine": "$(hostname)",
-    "user": "$(whoami)",
-    "branch": "$(git branch | grep '*'| cut -f 2 -d ' '"
+    "machine": "theophilos",
+    "user": "hiroshi",
+    "branch": "test-branch"
   },
   "runs": [
     {
@@ -10,7 +10,7 @@
       "testCaseId": "whenPerformDailyOperation_thenFinishesSuccessfully",
       "result": "PASS",
       "duration": {
-        "start": "2025-01-31T12:30:10Z",
+        "begin": "2025-01-31T12:30:10Z",
         "end": "2025-01-31T12:30:10Z"
       }
     }
