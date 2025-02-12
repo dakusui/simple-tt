@@ -2,6 +2,7 @@ import path from "path";
 import { ensureDirectoryExists, saveFile } from "./utils";
 import { existsSync, readdirSync } from "fs";
 import { readJsonSync } from "./utils";
+import superjson from "superjson";
 
 export class TestSuite {
   constructor(
@@ -44,10 +45,16 @@ export class TestRunSet {
   }
 
   static fromJSON(json: { environment: { machine: string; user: string; branch: string }; runs: [] }): TestRunSet {
-    return new TestRunSet(TestEnvironment.fromJSON(json.environment), TestCaseRun.fromJSONArray(json.runs));
+    const environment = TestEnvironment.fromJSON(json.environment);
+    return new TestRunSet(environment, TestCaseRun.fromJSONArray(environment, json.runs));
   }
 }
 
+interface TestEnvironmentJSON {
+  machine: string;
+  user: string;
+  branch: string;
+}
 export class TestEnvironment {
   constructor(
     public machine: string,
@@ -55,16 +62,29 @@ export class TestEnvironment {
     public branch: string
   ) {}
 
-  static fromJSON(json: { machine: string; user: string; branch: string }) {
+  static fromJSON(json: TestEnvironmentJSON) {
     return new TestEnvironment(json.machine, json.user, json.branch);
   }
 }
 
+interface TestCaseRunJSON {
+  result: string;
+  environment: {
+    machine: string;
+    user: string;
+    branch: string;
+  };
+  duration: {
+    start: Date;
+    end: Date;
+  };
+}
 export class TestCaseRun {
   constructor(
     public testSuiteId: string,
     public testCaseId: string,
     public result: string,
+    public environment: TestEnvironment,
     public duration: Duration
   ) {}
 
@@ -72,27 +92,44 @@ export class TestCaseRun {
     testSuiteId: string;
     testCaseId: string;
     result: string;
-    duration: {
-      start: string;
-      end: string;
-    };
+    environment: TestEnvironmentJSON;
+    duration: DurationJSON;
   }) {
-    return new TestCaseRun(run.testSuiteId, run.testCaseId, run.result, Duration.fromJSON(run.duration));
+    return new TestCaseRun(
+      run.testSuiteId,
+      run.testCaseId,
+      run.result,
+      TestEnvironment.fromJSON(run.environment),
+      Duration.fromJSON(run.duration)
+    );
   }
 
-  static fromJSONArray(runs: []): TestCaseRun[] {
-    return runs.map(each => TestCaseRun.fromJSON(each));
+  static fromJSONArray(
+    environment: TestEnvironment,
+    runs: { testSuiteId: string; testCaseId: string; result: string; duration: DurationJSON }[]
+  ): TestCaseRun[] {
+    return runs.map(
+      each =>
+        new TestCaseRun(each.testSuiteId, each.testCaseId, each.result, environment, Duration.fromJSON(each.duration))
+    );
   }
 }
-
+interface DurationJSON {
+  start: Date;
+  end: Date;
+}
 export class Duration {
   constructor(
     public start: Date,
     public end: Date
   ) {}
 
-  static fromJSON(duration: { start: string; end: string }): Duration {
-    return new Duration(new Date(duration.start), new Date(duration.end));
+  static fromJSON(duration: DurationJSON): Duration {
+    return new Duration(duration.start, duration.end);
+  }
+
+  toJSON() {
+    return { start: this.start, end: this.end };
   }
 }
 
@@ -213,9 +250,12 @@ export class TestManager {
   storeTestSuite(testSuite: TestSuite): void {
     const testSuitesDir = this.testSuiteDirFor(testSuite.id);
     ensureDirectoryExists(testSuitesDir);
-    saveFile(path.join(this.baseDir, "testSuite.json"), JSON.stringify({ description: testSuite.description }));
+    saveFile(path.join(testSuitesDir, "testSuite.json"), superjson.stringify({ description: testSuite.description }));
     for (const each of testSuite.testCases) {
-      saveFile(path.join(testSuitesDir, "testCase-" + each.id + ".json"), JSON.stringify({ description: each.description }));
+      saveFile(
+        path.join(testSuitesDir, "testCase-" + each.id + ".json"),
+        superjson.stringify({ description: each.description })
+      );
     }
   }
 
@@ -229,10 +269,10 @@ export class TestManager {
       this.ensureDefinitionExists(eachTestCaseRun);
       saveFile(
         path.join(testSuiteDirForRun, "testCase-" + eachTestCaseRun.testCaseId) + ".json",
-        JSON.stringify({
+        superjson.stringify({
           result: eachTestCaseRun.result,
-          environment: JSON.stringify(env),
-          duration: JSON.stringify(eachTestCaseRun.duration)
+          environment: env,
+          duration: eachTestCaseRun.duration
         })
       );
     }
@@ -243,8 +283,12 @@ export class TestManager {
     const testSuiteFile: string = path.join(testSuiteDir, "testSuite.json");
     const testCaseFile: string = path.join(testSuiteDir, "testCase-" + testCaseRun.testCaseId + ".json");
     ensureDirectoryExists(testSuiteDir);
-    if (!existsSync(testSuiteFile)) saveFile(testSuiteFile, JSON.stringify({ description: "" }));
-    if (!existsSync(testCaseFile)) saveFile(testCaseFile, JSON.stringify({ description: "" }));
+    if (!existsSync(testSuiteFile)) saveFile(testSuiteFile, superjson.stringify({ description: "" }));
+    if (!existsSync(testCaseFile)) saveFile(testCaseFile, superjson.stringify({ description: "" }));
+  }
+
+  existsTriage(runId: string, testSuiteId: string, testCaseId: string): boolean {
+    return existsSync(this.triageFilePath(runId, testSuiteId, testCaseId));
   }
 
   storeTriage(
@@ -256,20 +300,12 @@ export class TestManager {
     const triagesDir = path.join(this.baseDir, "triages");
     const testSuiteDir = path.join(triagesDir, path.join("run-" + runId, "testSuite-" + testSuiteId));
     ensureDirectoryExists(testSuiteDir);
-    saveFile(path.join(testSuiteDir, "testCase-" + testCaseId + ".json"), JSON.stringify(note));
-  }
-
-  existsTriage(runId: string, testSuiteId: string, testCaseId: string): boolean {
-    return existsSync(this.triageFilePath(runId, testSuiteId, testCaseId));
+    saveFile(path.join(testSuiteDir, "testCase-" + testCaseId + ".json"), superjson.stringify(note));
   }
 
   fetchTriage(runId: string, testSuiteId: string, testCaseId: string): Triage {
     const triageFile: string = this.triageFilePath(runId, testSuiteId, testCaseId);
     return Triage.fromJSON(readJsonSync(triageFile));
-  }
-
-  triageFilePath(runId: string, testSuiteId: string, testCaseId: string): string {
-    return path.join(this.triageDirFor(runId), path.join("testSuite-" + testSuiteId, "triage-" + testCaseId + ".json"));
   }
 
   testSuites(): string[] {
@@ -296,7 +332,24 @@ export class TestManager {
     return this.listIdentifiers(path.join(this.runDirFor(runId), "testSuite-" + testSuiteId), "run-");
   }
 
-  listIdentifiers(base: string, prefix: string, ...extras: (RegExp | string)[]): string[] {
+  existsTestCaseRun(runId: string, testSuiteId: string, testCaseId: string): boolean {
+    return existsSync(this.pathForTestCaseRun(runId, testSuiteId, testCaseId));
+  }
+
+  fetchTestCaseRun(runId: string, testSuiteId: string, testCaseId: string): TestCaseRun {
+    const json: TestCaseRunJSON = (
+      readJsonSync(this.pathForTestCaseRun(runId, testSuiteId, testCaseId)) as { json: TestCaseRunJSON }
+    ).json;
+    return TestCaseRun.fromJSON({
+      testSuiteId: testSuiteId,
+      testCaseId: testCaseId,
+      result: json.result,
+      environment: TestEnvironment.fromJSON(json.environment),
+      duration: Duration.fromJSON(json.duration)
+    });
+  }
+
+  private listIdentifiers(base: string, prefix: string, ...extras: (RegExp | string)[]): string[] {
     return readdirSync(base)
       .filter(f => f.startsWith(prefix))
       .map(f => {
@@ -308,47 +361,44 @@ export class TestManager {
       });
   }
 
-  existsTestCaseRun(runId: string, testSuiteId: string, testCaseId: string): boolean {
-    return existsSync(this.pathForTestCaseRun(runId, testSuiteId, testCaseId));
+  private triageFilePath(runId: string, testSuiteId: string, testCaseId: string): string {
+    return path.join(this.triageDirFor(runId), path.join("testSuite-" + testSuiteId, "triage-" + testCaseId + ".json"));
   }
 
-  fetchTestCaseRun(runId: string, testSuiteId: string, testCaseId: string): TestCaseRun {
-    return TestCaseRun.fromJSON(readJsonSync(this.pathForTestCaseRun(runId, testSuiteId, testCaseId)));
+
+  private pathForTestCaseRun(runId: string, testSuiteId: string, testCaseId: string): string {
+    return path.join(this.runDirFor(runId), path.join("testSuite-" + testSuiteId, "testCase-" + testCaseId + ".json"));
   }
 
-  pathForTestCaseRun(runId: string, testSuiteId: string, testCaseId: string): string {
-    return  path.join(this.runDirFor(runId), path.join("testSuite-" + testSuiteId, "testCase-" + testCaseId + ".json"));
-  }
-
-  pathForTriage(runId: string, testSuiteId: string, testCaseId: string): string {
+  private pathForTriage(runId: string, testSuiteId: string, testCaseId: string): string {
     return path.join(this.triageDirFor(runId)), path.join("testSuite-" + testSuiteId, "triage-" + testCaseId);
   }
 
-  generateRunId() {
+  private generateRunId() {
     return new Date(Date.now()).toISOString().replaceAll(":", "-");
   }
 
-  runDirFor(runId: string) {
+  private runDirFor(runId: string) {
     return path.join(this.runsDir(), "run-" + runId);
   }
 
-  runsDir() {
+  private runsDir() {
     return path.join(this.baseDir, "runs");
   }
 
-  testSuiteDirFor(testSuiteId: string) {
+  private testSuiteDirFor(testSuiteId: string) {
     return path.join(this.testSuitesDir(), "testSuite-" + testSuiteId);
   }
 
-  testSuitesDir() {
+  private testSuitesDir() {
     return path.join(this.baseDir, "testSuites");
   }
 
-  triageDirFor(runId: string) {
+  private triageDirFor(runId: string) {
     return path.join(this.triagesDir(), "run-" + runId);
   }
 
-  triagesDir() {
+  private triagesDir() {
     return path.join(this.baseDir, "triages");
   }
 }

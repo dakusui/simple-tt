@@ -77,4 +77,8 @@ npx playwright install
 ║     npx playwright install                                                    ║
 ║                                                                               ║
 ╚═══════════════════════════════════════════════════════════════════════════════╝
+
+
+
+npm install superjson
 ```

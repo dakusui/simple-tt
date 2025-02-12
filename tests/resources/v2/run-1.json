@@ -8,11 +8,21 @@
     {
       "testSuiteId": "com.github.dakusui.sample_tt.example.FirstTest",
       "testCaseId": "whenPerformDailyOperation_thenFinishesSuccessfully",
-      "result": "PASS",
+      "result": "FAIL",
       "duration": {
-        "begin": "2025-01-31T12:30:10Z",
-        "end": "2025-01-31T12:30:10Z"
+        "start": "2025-01-31T12:30:10Z",
+        "end": "2025-01-31T12:30:99Z"
+      }
+    },
+    {
+      "testSuiteId": "com.github.dakusui.sample_tt.example.FirstTest",
+      "testCaseId": "whenPerformMonthlyOperation_thenFinishesSuccessfully",
+      "result": "FAIL",
+      "duration": {
+        "start": "2025-01-31T12:31:10Z",
+        "end": "2025-01-31T12:32:10Z"
       }
     }
+
   ]
 }

@@ -23,8 +23,6 @@ export default function UploadPage() {
     reader.onload = async () => {
       try {
         const jsonData = JSON.parse(reader.result as string);
-        console.log("Parsed JSON:", jsonData); // Debugging
-
         const response = await fetch("/api/upload", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
