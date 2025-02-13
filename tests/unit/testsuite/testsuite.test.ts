@@ -5,43 +5,63 @@ import { TestSuite } from "../../../models/TestSuite";
 import { readJsonSync } from "../../../models/utils";
 import { existsSync, rmSync } from "fs";
 
-describe("Create a new TestManager object and store a test suite definition", () => {
+function ensureEmptyDirectoryExists() {
   if (existsSync("/tmp/hello")) rmSync("/tmp/hello", { recursive: true });
-  const testManager: TestManager = new TestManager("/tmp/hello");
+}
 
+{
+  ensureEmptyDirectoryExists();
+  const testManager: TestManager = new TestManager("/tmp/hello");
+  describe("TestManager", () => {
+    it("can store TestSuite", () => {
+      testManager.storeTestSuite(TestSuite.fromJSON(readJsonSync("tests/resources/v2/testsuite.json")));
+    });
+  });
+}
+{
+  const testManager: TestManager = new TestManager("/tmp/hello");
   testManager.storeTestSuite(TestSuite.fromJSON(readJsonSync("tests/resources/v2/testsuite.json")));
-  it("testSuites to be expected", () => {
-    expect(testManager.testSuites()).toEqual(["com.github.dakusui.sample_tt.example.FirstTest"]);
-  });
-  it("Find test cases by testSuiteId", () => {
-    expect(testManager.testCasesFor("com.github.dakusui.sample_tt.example.FirstTest")).toEqual([
-      "whenPerformDailyOperation_thenFinishesSuccessfully",
-      "whenPerformMonthlyOperation_thenFinishesSuccessfully"
-    ]);
-  });
-  describe("Store a new run set", () => {
+  describe("TestManager, given testSuite loaded, ", () => {
+    it("returns the loaded testSuites", () => {
+      expect(testManager.testSuites()).toEqual(["com.github.dakusui.sample_tt.example.FirstTest"]);
+    });
+    it("can return the testcases under a specified testSuite", () => {
+      expect(testManager.testCasesFor("com.github.dakusui.sample_tt.example.FirstTest")).toEqual([
+        "whenPerformDailyOperation_thenFinishesSuccessfully",
+        "whenPerformMonthlyOperation_thenFinishesSuccessfully"
+      ]);
+    });
+
     testManager.storeRunSet(TestRunSet.fromJSON(readJsonSync("tests/resources/v2/run-1.json")));
-    it("runId is as expected", () => {
-      const runIds: string[] = testManager.runs();
-      expect(runIds.length).toBe(1);
-      expect(runIds[0].length).greaterThan(0);
-    });
-    const runId: string = testManager.runs()[0];
-    const testSuiteId = "com.github.dakusui.sample_tt.example.FirstTest";
-    const testCaseId = "whenPerformDailyOperation_thenFinishesSuccessfully";
-    it("Exists run for an existing new testSuite and testCase", () => {
-      expect(testManager.existsTestCaseRun(runId, testSuiteId, testCaseId)).toBe(true);
-    });
-    it("Fetch run for the testCase", () => {
-      const fetcedTestCaseRun = testManager.fetchTestCaseRun(runId, testSuiteId, testCaseId);
-      expect(fetcedTestCaseRun.result).toBe("FAIL");
-      expect(fetcedTestCaseRun.testCaseId).toBe(testCaseId);
-      expect(fetcedTestCaseRun.testSuiteId).toBe(testSuiteId);
-      expect(fetcedTestCaseRun.duration.start).toMatch("2025-01-31T12:30:10Z");
-      expect(fetcedTestCaseRun.duration.end).toMatch("2025-01-31T12:30:99Z");
-      expect(fetcedTestCaseRun.environment.branch).toMatch("test-branch");
-      expect(fetcedTestCaseRun.environment.machine).toMatch("theophilos");
-      expect(fetcedTestCaseRun.environment.user).toMatch("hiroshi");
+    describe("storeRunSet returns", () => {
+      it("runId is as expected", () => {
+        const runIds: string[] = testManager.runs();
+        expect(runIds.length).toBe(1);
+        expect(runIds[0].length).greaterThan(0);
+      });
+      const runId: string = testManager.runs()[0];
+      const testSuiteId = "com.github.dakusui.sample_tt.example.FirstTest";
+      const testCaseId = "whenPerformDailyOperation_thenFinishesSuccessfully";
+      it("Exists run for an existing new testSuite and testCase", () => {
+        expect(testManager.existsTestCaseRun(runId, testSuiteId, testCaseId)).toBe(true);
+      });
+      it("Fetch run for the testCase", () => {
+        const fetchedTestCaseRun = testManager.fetchTestCaseRun(runId, testSuiteId, testCaseId);
+        expect(fetchedTestCaseRun).toMatchObject({
+          testSuiteId: testSuiteId,
+          testCaseId: testCaseId,
+          result: "FAIL"
+        });
+        expect(fetchedTestCaseRun.duration).toMatchObject({
+          start: "2025-01-31T12:30:10.000Z",
+          end: "2025-01-31T12:30:59.123Z"
+        });
+        expect(fetchedTestCaseRun.environment.toJSON()).toMatchObject({
+          branch: "test-branch",
+          machine: "theophilos",
+          user: "hiroshi"
+        });
+      });
     });
   });
-});
+}

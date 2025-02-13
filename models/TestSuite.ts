@@ -65,6 +65,14 @@ export class TestEnvironment {
   static fromJSON(json: TestEnvironmentJSON) {
     return new TestEnvironment(json.machine, json.user, json.branch);
   }
+
+  toJSON() {
+    return {
+      machine: this.machine,
+      user: this.user,
+      branch: this.branch
+    }  
+  }
 }
 
 interface TestCaseRunJSON {

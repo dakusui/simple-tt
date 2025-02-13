@@ -10,8 +10,8 @@
       "testCaseId": "whenPerformDailyOperation_thenFinishesSuccessfully",
       "result": "FAIL",
       "duration": {
-        "start": "2025-01-31T12:30:10Z",
-        "end": "2025-01-31T12:30:99Z"
+        "start": "2025-01-31T12:30:10.000Z",
+        "end": "2025-01-31T12:30:59.123Z"
       }
     },
     {
@@ -19,8 +19,8 @@
       "testCaseId": "whenPerformMonthlyOperation_thenFinishesSuccessfully",
       "result": "FAIL",
       "duration": {
-        "start": "2025-01-31T12:31:10Z",
-        "end": "2025-01-31T12:32:10Z"
+        "start": "2025-01-31T12:31:10.999",
+        "end": "2025-01-31T12:32:11.000"
       }
     }
 
