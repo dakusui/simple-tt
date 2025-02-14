@@ -1,9 +1,10 @@
 import { describe, it, expect } from "vitest";
 
-import { TestManager, TestRunSet } from "../../../models/TestSuite";
+import { Duration, TestManager, TestRunSet } from "../../../models/TestSuite";
 import { TestSuite } from "../../../models/TestSuite";
 import { readJsonSync } from "../../../models/utils";
 import { existsSync, rmSync } from "fs";
+import { environments } from "eslint-plugin-jest";
 
 function ensureEmptyDirectoryExists() {
   if (existsSync("/tmp/hello")) rmSync("/tmp/hello", { recursive: true });
@@ -47,20 +48,19 @@ function ensureEmptyDirectoryExists() {
       });
       it("Fetch run for the testCase", () => {
         const fetchedTestCaseRun = testManager.fetchTestCaseRun(runId, testSuiteId, testCaseId);
-        expect(fetchedTestCaseRun).toMatchObject({
-          testSuiteId: testSuiteId,
-          testCaseId: testCaseId,
-          result: "FAIL"
-        });
-        expect(fetchedTestCaseRun.duration).toMatchObject({
-          start: "2025-01-31T12:30:10.000Z",
-          end: "2025-01-31T12:30:59.123Z"
-        });
-        expect(fetchedTestCaseRun.environment.toJSON()).toMatchObject({
-          branch: "test-branch",
-          machine: "theophilos",
-          user: "hiroshi"
-        });
+        expect(fetchedTestCaseRun).toEqual(
+          expect.objectContaining({
+            testSuiteId: testSuiteId,
+            testCaseId: testCaseId,
+            result: "FAIL",
+            duration: expect.objectContaining({ start: "2025-01-31T12:30:10.000Z", end: "2025-01-31T12:30:59.123Z" }),
+            environment: expect.objectContaining({
+              branch: "test-branch",
+              machine: "theophilos",
+              user: "hiroshi"
+            })
+          })
+        );
       });
     });
   });
