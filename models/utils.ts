@@ -7,7 +7,7 @@ export function saveFile(fileName: string, content: string) {
   writeFileSync(fileName, content);
 }
 
-export function readJsonSync(filePath: string) {
+export function readJsonSync<T>(filePath: string): T {
   const fileContent = readFileSync(filePath, "utf-8");
-  return JSON.parse(fileContent);
+  return JSON.parse(fileContent) as T;
 }
