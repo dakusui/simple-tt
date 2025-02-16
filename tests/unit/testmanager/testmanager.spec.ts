@@ -1,16 +1,8 @@
 import { describe, it, expect } from "vitest";
 
 import { TestManager } from "../../../models/testsuite";
-import { existingRunId, existingTestCase, prepareTestManager, primaryRunSet, primaryTestSuite } from "../../models/testutils";
+import { existingRunId, existingTestCase, prepareTestManager, primaryRunSet } from "../../models/testutils";
 
-{
-  const testManager: TestManager = prepareTestManager();
-  describe("TestManager", () => {
-    it("can store TestSuite", () => {
-      testManager.storeTestSuite(primaryTestSuite());
-    });
-  });
-}
 {
   const testManager: TestManager = prepareTestManager();
   describe("TestManager, which stored  atestSuite, ", () => {
@@ -87,7 +79,6 @@ import { existingRunId, existingTestCase, prepareTestManager, primaryRunSet, pri
     });
     it("return non-empty triages", () => {
       const triagedRuns: string[] = testManager.triagedRuns();
-      console.log(triagedRuns);
       expect(triagedRuns.length).greaterThan(0);
     });
     it("returns true for a test case with triage", () => {
