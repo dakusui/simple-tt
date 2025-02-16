@@ -82,3 +82,11 @@ npx playwright install
 
 npm install superjson
 ```
+
+
+
+Experiment
+```
+npm install jest-gwt
+```
+-> No use
