@@ -1,28 +1,33 @@
-import { NextRequest } from "next/server";
-import { TESTRUNS_DIR } from "../../../models/constants";
-import fs from "fs";
-import path from "path";
-import { handleError } from "../../../models/validations";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { TestManager, TestRunSet, TestSuite } from "../../../models/testsuite";
 
-export default function POST(req: NextRequest) {
+const testManager = new TestManager(process.env.DATA_DIR || "data");
+
+export async function POST(req: NextRequest) {
   try {
-    const { searchParams } = req.nextUrl;
-    const testRun = {
-      testSuite: searchParams.get("fileName") as string,
-      executionTime: searchParams.get("exectutionTime") as string,
-      analysis: searchParams.get("analysis") as string
-    };
-    if (!fs.existsSync(TESTRUNS_DIR)) {
-      fs.mkdirSync(TESTRUNS_DIR, { recursive: true });
+    const formData = await req.formData();
+    const file = formData.get("file") as File;
+    const type = formData.get("type") as string; // "testSuite" or "testRun"
+
+    if (!file || !type) {
+      return NextResponse.json({ error: "Missing file or type" }, { status: 400 });
     }
-    const fileName = `test-run-${Date.now()}.json`;
-    const filePath = path.join(TESTRUNS_DIR, fileName);
 
-    fs.writeFileSync(filePath, JSON.stringify(testRun, null, 2), "utf-8");
+    // Read file content
+    const arrayBuffer = await file.arrayBuffer();
+    const fileContent = Buffer.from(arrayBuffer).toString("utf-8");
 
-    return NextResponse.json({ message: "Test run uploaded successfully", fileName });
+    // Determine storage path using TestManager
+    if (type === "testSuite") {
+      testManager.storeTestSuite(TestSuite.fromJSON(JSON.parse(fileContent)));
+    } else if (type === "testRun") {
+      testManager.storeRunSet(TestRunSet.fromJSON(JSON.parse(fileContent)));
+    } else {
+      return NextResponse.json({ error: "Invalid file type" }, { status: 400 });
+    }
+
+    return NextResponse.json({ message: "File uploaded successfully" });
   } catch (error) {
-    return handleError(error);
+    return NextResponse.json({ error: "File upload failed", details: error.message }, { status: 500 });
   }
 }

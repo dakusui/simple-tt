@@ -5,8 +5,8 @@ import { existingRunId, existingTestCase, prepareTestManager, primaryRunSet } fr
 
 {
   const testManager: TestManager = prepareTestManager();
-  describe("TestManager, which stored  atestSuite, ", () => {
-    it("returns the stored testSuites", () => {
+  describe("TestManager, which stored  a testSuite, ", () => {
+    it("returns the stores testSuites", () => {
       expect(testManager.testSuites()).toEqual(["com.github.dakusui.sample_tt.example.FirstTest"]);
     });
     it("can return the testcases under a specified testSuite", () => {

@@ -16,7 +16,7 @@ export function loadTestSuite(testManager: TestManager) {
 }
 
 export function primaryTestSuite(): TestSuite {
-  return readJsonSync("tests/resources/v2/testsuite.json");
+  return TestSuite.fromJSON(readJsonSync("tests/resources/v2/testsuite.json"));
 }
 
 export function prepareTestManager() {

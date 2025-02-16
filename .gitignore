@@ -15,6 +15,7 @@
 
 # data
 /data
+/data-compat
 
 # next.js
 /.next/
