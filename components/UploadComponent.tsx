@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState } from "react";
 
 interface UploadComponentProps {
   onUploadComplete?: (message: string) => void; // <-- Define prop type
@@ -17,21 +17,13 @@ export default function UploadComponent({ onUploadComplete }: UploadComponentPro
     if (!selectedFile) return;
 
     const formData = new FormData();
-    formData.append('file', selectedFile);
-    let type: string;
-    if (selectedFile.name.startsWith("testSuite-")) {
-        type = 'testSuite';
-    } else if (selectedFile.name.startsWith("run-")) {
-        type = 'testRun';
-    } else {
-        throw new Error('Unknown file type: <' + selectedFile.name);
-    }
-    formData.append('type', type);
+    formData.append("file", selectedFile);
+    formData.append("type", figureOutFileType(selectedFile.name));
 
     try {
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        body: formData
       });
 
       const result = await response.json();
@@ -53,4 +45,17 @@ export default function UploadComponent({ onUploadComplete }: UploadComponentPro
       </button>
     </div>
   );
+
+  function figureOutFileType(fileName: string): string {
+    let type: string;
+
+    if (/^testSuite-/i.test(fileName)) {
+      type = "testSuite";
+    } else if (/^run-/i.test(fileName)) {
+      type = "testRun";
+    } else {
+      throw new Error("Unknown file type: <" + fileName + ">");
+    }
+    return type;
+  }
 }

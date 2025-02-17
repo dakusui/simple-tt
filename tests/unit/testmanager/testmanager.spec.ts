@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 
-import { TestManager } from "../../../models/testsuite";
+import { TestManager } from "../../../models/test-manager";
 import { existingRunId, existingTestCase, prepareTestManager, primaryRunSet } from "../../models/testutils";
 
 {

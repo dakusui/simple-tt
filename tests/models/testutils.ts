@@ -1,5 +1,5 @@
 import { existsSync, rmSync } from "fs";
-import { TestManager, TestRunSet, TestSuite } from "../../models/testsuite";
+import { TestManager, TestRunSet, TestSuite } from "../../models/test-manager";
 import { readJsonSync } from "../../models/utils";
 
 export function ensureEmptyDirectoryExists() {

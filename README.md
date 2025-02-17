@@ -96,3 +96,11 @@ npm install jest-gwt
 ```
 npm install --save multer
 ```
+
+```
+npm install -D @vitest/coverage-v8
+```
+
+Extensions
+- Vitest
+- Vitest Runner
