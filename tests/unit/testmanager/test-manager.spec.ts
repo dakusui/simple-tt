@@ -9,23 +9,6 @@ Given<void, TestManager>()(
     ensureEmptyDirectoryExists();
     return createTestManager();
   },
-  When(
-    "stores TestSuite",
-    testManager => {
-      testManager.storeTestSuite(primaryTestSuite());
-      return testManager;
-    },
-    Then<TestManager>("TestManager returns non-empty for 'testSuite()'", testManager => {
-      expect(testManager.testSuites().length).toBeGreaterThan(0);
-    })
-  )
-);
-Given<void, TestManager>()(
-  "new TestManager",
-  () => {
-    ensureEmptyDirectoryExists();
-    return createTestManager();
-  },
   When<TestManager>(
     "stores TestSuite",
     testManager => {
@@ -116,27 +99,36 @@ Given<void, TestManager>()(
         return ret;
       },
       Then<TestCaseState[]>("All test case states are returned.", testCaseStates => {
-        console.log(testCaseStates);
         expect(testCaseStates.length).greaterThan(0);
-      })));
-  Given<void, TestManager>()(
-    "TestManager, which stores a testSuite and a run set",
-    () => {
-      ensureEmptyDirectoryExists();
-      const testManager: TestManager = createTestManager();
-      testManager.storeTestSuite(primaryTestSuite());
-        testManager.storeRunSet(primaryRunSet());
-      return testManager;
-    },
+      })
+    ),
     When<TestManager>(
-      "fetchTestCaseState is called over (testSuiteId, testCaseId)",
+      "testCasesForRun is called over (runId, testSuiteId with run)",
       testManager => {
-        return testManager.fetchTestCaseStates();
+        const ret: string[] = [];
+        for (const eachRunId of testManager.runs()) {
+          for (const eachTestSuiteId of testManager.testSuitesForRun(eachRunId)) {
+            for (const eachTestCaseId of testManager.testCasesForRun(eachRunId, eachTestSuiteId)) {
+              ret.push(eachTestCaseId);
+            }
+          }
+        }
+        return ret;
       },
-      Then<TestCaseState[]>("All test case states are returned.", testCaseStates => {
-        console.log(testCaseStates);
-        expect(testCaseStates.length).greaterThan(0);
-      })));
+      Then<string[]>("testsCaseIds are not empty", testCaseIds => {
+        expect(testCaseIds.length).greaterThan(0);
+        expect(testCaseIds.every(e => e.length > 0)).toBeTruthy();
+      })
+    ),
+    When<TestManager>(
+      "testCasesForRun is called with non-existing runId",
+      testManager => {
+        return testManager.testCasesForRun("non-existing-run-id", "com.github.dakusui.sample_tt.example.FirstTest");},
+      Then<string[]>("testsCaseIds ARE empty", testCaseIds => {
+        expect(testCaseIds.length).eq(0);
+      })
+    )
+  );
   Given<void, TestManager>()(
     "TestManager, which stores a testSuite and a run set",
     () => {
@@ -147,9 +139,28 @@ Given<void, TestManager>()(
       return testManager;
     },
     When<TestManager>(
-      "storeTriage(...) is called",
+      "fetchTestCaseState is called over (testSuiteId, testCaseId)",
       testManager => {
-        const runId = testManager.runs()[0];
+        return testManager.fetchTestCaseStates();
+      },
+      Then<TestCaseState[]>("All test case states are returned.", testCaseStates => {
+        expect(testCaseStates.length).greaterThan(0);
+      })
+    )
+  );
+  Given<void, [TestManager, string]>()(
+    "TestManager, which stores a testSuite, a run-set, and a triage for one of the test case runs",
+    () => {
+      ensureEmptyDirectoryExists();
+      const testManager: TestManager = createTestManager();
+      testManager.storeTestSuite(primaryTestSuite());
+      testManager.storeRunSet(primaryRunSet());
+      return [testManager, testManager.runs()[0]];
+    },
+    When<[TestManager, string]>(
+      "storeTriage(...) is called",
+      testManagerAndRunId => {
+        const [testManager, runId] = testManagerAndRunId;
         testManager.storeTriage(
           runId,
           "com.github.dakusui.sample_tt.example.FirstTest",
@@ -164,7 +175,44 @@ Given<void, TestManager>()(
         return testManager;
       },
       Then<TestManager>("testManager can run fetchTestCaseStates().", testManager => {
-        console.log(testManager);
-        expect(testManager.fetchTestCaseStates()).greaterThan(0);
-      })));
+        expect(testManager.fetchTestCaseStates().length).greaterThan(0);
+        expect(testManager.fetchTestCaseStates()[0]).toBeTruthy();
+      })
+    )
+  );
+  Given<void, [TestManager, string, string]>()(
+    "TestManager, which stores a testSuite, a run-set, and a triage for one of the test case runs",
+    () => {
+      ensureEmptyDirectoryExists();
+      const testManager: TestManager = createTestManager();
+      testManager.storeTestSuite(primaryTestSuite());
+      testManager.storeRunSet(primaryRunSet());
+      const runId = testManager.runs()[0];
+      const testSuiteId = "com.github.dakusui.sample_tt.example.FirstTest";
+      const testCaseId = "whenPerformDailyOperation_thenFinishesSuccessfully";
+      testManager.storeTriage(runId, testSuiteId, testCaseId, {
+        ticket: "TT-12345",
+        insight: "This is a test insight.",
+        at: new Date(),
+        by: "testUser"
+      });
+      return [testManager, testSuiteId, testCaseId];
+    },
+    When<[TestManager, string, string]>(
+      "fetchTestCaseState(...) is called",
+      context => {
+        const [testManager, testSuiteId, testCaseId] = context;
+        return testManager.fetchTestCaseState(testSuiteId, testCaseId);
+      },
+      Then<TestCaseState>("returned TestCaseState with a triage note", testCaseState => {
+        expect(testCaseState).toBeTruthy();
+        expect(testCaseState.lastResult).toBeTruthy();
+        expect(testCaseState.lastTriageNote).toMatchObject({
+          ticket: "TT-12345",
+          insight: "This is a test insight.",
+          at: expect.any(Date)
+        });
+      })
+    )
+  );
 }

@@ -32,15 +32,18 @@ export class TestManager {
       });
   }
 
-  fetchTestCaseState(testSuiteId: string, testCaseId: string) : TestCaseState{
+  fetchTestCaseState(testSuiteId: string, testCaseId: string): TestCaseState {
     const lastResult = this.fetchLastRunFor(testSuiteId, testCaseId)?.result as string | null;
-    const lastTriageNote = this.fetchLastTriageFor(testSuiteId, testCaseId)?.note as {
-      ticket: string;
-      insight: string;
-      by: string;
-      at: Date;
-    } | null;
-    return new TestCaseState(testSuiteId, testCaseId, lastResult, lastTriageNote);
+    if (this.existsTriage(this.lastRunIdFor(testSuiteId, testCaseId) as string, testSuiteId, testCaseId)) {
+      const lastTriageNote = this.fetchLastTriageFor(testSuiteId, testCaseId)?.note as {
+        ticket: string;
+        insight: string;
+        by: string;
+        at: Date;
+      };
+      return new TestCaseState(testSuiteId, testCaseId, lastResult, lastTriageNote);
+    }
+    return new TestCaseState(testSuiteId, testCaseId, lastResult, null);
   }
 
   fetchLastRunFor(testSuiteId: string, testCaseId: string): TestCaseRun | null {
@@ -107,12 +110,7 @@ export class TestManager {
 
   fetchTriage(runId: string, testSuiteId: string, testCaseId: string): Triage {
     const triageFile: string = this.triageFilePath(runId, testSuiteId, testCaseId);
-    return new Triage(
-       runId,
-       testSuiteId,
-       testCaseId,
-       readObjectFromJson(triageFile)
-    );
+    return new Triage(runId, testSuiteId, testCaseId, readObjectFromJson(triageFile));
   }
 
   testSuites(): string[] {
@@ -144,9 +142,9 @@ export class TestManager {
   }
 
   fetchTestCaseRun(runId: string, testSuiteId: string, testCaseId: string): TestCaseRun {
-    const json: TestCaseRunJSON = (
-      readObjectFromJson(this.pathForTestCaseRun(runId, testSuiteId, testCaseId)) as TestCaseRunJSON 
-    );
+    const json: TestCaseRunJSON = readObjectFromJson(
+      this.pathForTestCaseRun(runId, testSuiteId, testCaseId)
+    ) as TestCaseRunJSON;
     return TestCaseRun.fromJSON({
       testSuiteId: testSuiteId,
       testCaseId: testCaseId,
@@ -235,7 +233,6 @@ export class TestManager {
     return path.join(this.baseDir, "triages");
   }
 }
-
 
 export class TestSuite {
   constructor(
