@@ -32,7 +32,7 @@ export class TestManager {
       });
   }
 
-  fetchTestCaseState(testSuiteId: string, testCaseId: string) {
+  fetchTestCaseState(testSuiteId: string, testCaseId: string) : TestCaseState{
     const lastResult = this.fetchLastRunFor(testSuiteId, testCaseId)?.result as string | null;
     const lastTriageNote = this.fetchLastTriageFor(testSuiteId, testCaseId)?.note as {
       ticket: string;

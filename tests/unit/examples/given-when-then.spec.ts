@@ -1,4 +1,5 @@
-import { __Given, Then, When } from "../../utils/gwt";
+import { expect } from "vitest";
+import { Given, Then, ThenExpect, When } from "../../utils/gwt";
 
 function prependTitle(name: string): string {
   console.log("prepend:<" + name + ">")
@@ -10,19 +11,18 @@ function appendSuffix(name: string): string {
 
 {
   const name: string = "Hiroshi Ukai";
-  __Given<void, string>(
-    name,
+  Given<string, string>(name)(
     () => name,
     When<string>(
       "prependTitle",
       s => prependTitle(s),
-      Then("Prefix is 'Dr.'", v => v.toContain("Dr.")),
-      Then("Not empty", v => v.lengthOf(name.length + 3))
+      ThenExpect("Prefix is 'Dr.'", v => v.toContain("Dr.")),
+      ThenExpect("Not empty", v => v.lengthOf(name.length + 3))
     ),
     When<string>(
       "appendSuffix",
       s => appendSuffix(s),
-      Then("Suffix is '-san'", v => v.toContain("-san"))
+      Then("Suffix is '-san'", v => expect(v).toContain("-san"))
     )
-  )();
+  );
 }
