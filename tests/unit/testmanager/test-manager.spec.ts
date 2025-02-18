@@ -3,7 +3,7 @@ import { TestManager } from "../../../models/test-manager";
 import { createTestManager, ensureEmptyDirectoryExists, primaryRunSet, primaryTestSuite } from "../../models/testutils";
 import { Given, Then, When } from "../../utils/gwt";
 
-Given(
+Given<void, TestManager>(undefined)(
   "new TestManager",
   () => {
     ensureEmptyDirectoryExists();
@@ -19,8 +19,8 @@ Given(
       expect(testManager.testSuites().length).toBeGreaterThan(0);
     })
   )
-)("");
-Given<void, TestManager>(
+);
+Given<void, TestManager>(undefined)(
   "new TestManager",
   () => {
     ensureEmptyDirectoryExists();
@@ -36,10 +36,10 @@ Given<void, TestManager>(
       expect(testManager.testSuites().length).toBeGreaterThan(0);
     })
   )
-)();
+);
 {
-  Given<void, TestManager>(
-    "TestManager, which stored a testSuite, ",
+  Given<void, TestManager>(undefined)(
+    "TestManager, which stores a testSuite, ",
     () => {
       ensureEmptyDirectoryExists();
       const testManager: TestManager = createTestManager();
@@ -64,9 +64,9 @@ Given<void, TestManager>(
         expect(returnedList).toEqual(["whenPerformDailyOperation_thenFinishesSuccessfully"]);
       })
     )
-  )();
-  Given<void, TestManager>(
-    "TestManager, which stored a testSuite, ",
+  );
+  Given<void, TestManager>(undefined)(
+    "TestManager, which stores a testSuite, ",
     () => {
       ensureEmptyDirectoryExists();
       const testManager: TestManager = createTestManager();
@@ -95,5 +95,5 @@ Given<void, TestManager>(
         ]);
       })
     )
-  )();
+  );
 }

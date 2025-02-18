@@ -1,8 +1,13 @@
 import { describe, it, expect, Assertion } from "vitest";
 
-export function Given<T, U>(message: string, task: (value: T) => U, ...whens: ((t: U) => void)[]): (value: T) => void {
+export function Given<T, U>(value: T): (message: string, task: (value: T) => U, ...whens: ((t: U) => void)[]) => void {
+  return (message, task, whens) =>  {
+    return __Given<T, U>(message, task, whens)(value);
+  };
+}
+function __Given<T, U>(message: string, task: (value: T) => U, ...whens: ((t: U) => void)[]): (value: T) => void {
   return value => {
-    describe("Given: " + message, () => {
+    describe("Given: " + String(value) + ": " + message, () => {
       for (const each of whens) {
         const v = task(value);
         each(v);
@@ -17,7 +22,6 @@ export function When<U>(
   ...thens: ((value: unknown) => void)[]
 ): (value: U) => void {
   return value => {
-    console.log("message: " + message + ",<" + value + ">");
     describe("When: " + message, () => {
       for (const each of thens) {
         const v = task(value);

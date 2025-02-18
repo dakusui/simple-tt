@@ -1,4 +1,4 @@
-import { Given, Then, When } from "../../utils/gwt";
+import { __Given, Then, When } from "../../utils/gwt";
 
 function prependTitle(name: string): string {
   console.log("prepend:<" + name + ">")
@@ -10,7 +10,7 @@ function appendSuffix(name: string): string {
 
 {
   const name: string = "Hiroshi Ukai";
-  Given<void, string>(
+  __Given<void, string>(
     name,
     () => name,
     When<string>(
