@@ -1,7 +1,49 @@
 import path from "path";
+import fs from 'fs';
 import { ensureDirectoryExists, readObjectFromJson, saveFile } from "./utils";
 import { existsSync, readdirSync } from "fs";
 import superjson from "superjson";
+
+// src/models/test-manager.ts
+// src/models/test-manager.ts
+
+const testRunDir = path.join(process.cwd(), 'data', 'test-runs');
+
+export async function storeTestRun(jsonData: any): Promise<string> {
+    if (!fs.existsSync(testRunDir)) {
+        fs.mkdirSync(testRunDir, { recursive: true });
+    }
+
+    // Generate a filename based on timestamp or other unique identifier
+    const fileName = `test-run-${Date.now()}.json`;
+    const filePath = path.join(testRunDir, fileName);
+
+    // Write the JSON data to a file
+    fs.writeFileSync(filePath, JSON.stringify(jsonData, null, 2), 'utf-8');
+
+    console.log(`Test run stored as: ${filePath}`);
+    return fileName;
+}
+
+export async function getRecentStatuses() {
+  // Mock data for testing, replace with actual data fetching logic
+  return [
+      {
+          testSuite: 'Suite A',
+          testCase: 'Test Case 1',
+          testResult: 'PASS',
+          executionTime: new Date().toISOString(),
+          manualAnalysis: 'Looks good'
+      },
+      {
+          testSuite: 'Suite B',
+          testCase: 'Test Case 2',
+          testResult: 'FAIL',
+          executionTime: new Date().toISOString(),
+          manualAnalysis: ''
+      }
+  ];
+}
 
 /**
  * baseDir/

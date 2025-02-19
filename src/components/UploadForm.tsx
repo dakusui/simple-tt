@@ -1,3 +1,4 @@
+// src/components/UploadForm.tsx
 'use client';
 
 import { useState } from 'react';
@@ -23,7 +24,6 @@ const UploadForm = () => {
     reader.onload = async () => {
       try {
         const jsonData = JSON.parse(reader.result as string);
-        console.log('Parsed JSON:', jsonData); // Debugging
 
         const response = await fetch('/api/upload', {
           method: 'POST',
