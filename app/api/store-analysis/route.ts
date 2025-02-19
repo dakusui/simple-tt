@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ANALYSES_DIR } from "../../../models/constants";
-import { handleError } from "../../../models/validations";
+import { handleError } from "../../../src/models/validations";
 import fs from "fs";
 import path from "path";
 type TestEntry = {

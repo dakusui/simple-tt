@@ -1,5 +1,5 @@
 import fs from 'fs';
-import { handleError } from '../../../models/validations';
+import { handleError } from '../../../src/models/validations';
 import { NextResponse } from 'next/server';
 import { TESTRUNS_DIR } from '../../../models/constants';
 

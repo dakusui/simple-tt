@@ -4,7 +4,7 @@ import fs from "fs";
 import path from "path";
 import {
   handleError
-} from "../../../models/validations";
+} from "../../../src/models/validations";
 
 export async function GET(req: NextRequest) {
   try {

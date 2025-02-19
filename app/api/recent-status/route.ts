@@ -3,7 +3,7 @@ import path from "path";
 import { NextResponse } from "next/server";
 import { CompatTestCaseRun } from "../../../models/CompatTestCaseRun";
 import { TESTRUNS_DIR, ANALYSES_DIR } from "../../../models/constants";
-import { handleError } from "../../../models/validations";
+import { handleError } from "../../../src/models/validations";
 
 export async function GET() {
   try {
