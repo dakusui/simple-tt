@@ -1,0 +1,28 @@
+
+{
+  "environment": {
+    "machine": "$(hostname)",
+    "user": "$(whoami)",
+    "branch": "$(git branch | grep '*'| cut -f 2 -d ' '"
+  },
+  "runs": [
+    {
+      "testSuiteId": "com.github.dakusui.sample_tt.example.FirstTest",
+      "testCaseId": "whenPerformDailyOperation_thenFinishesSuccessfully",
+      "result": "PASS",
+      "duration": {
+        "start": "2025-02-11T10:30:10Z",
+        "end": "2025-02-11T10:30:10Z"
+      }
+    },
+    {
+      "testSuiteId": "com.github.dakusui.sample_tt.example.SecondTest",
+      "testCaseId": "whenPerformWeeklyOperation_thenFinishesSuccessfully",
+      "result": "PASS",
+      "duration": {
+        "start": "2025-02-09T11:30:10Z",
+        "end": "2025-02-10T11:30:10Z"
+      }
+    }
+  ]
+}
