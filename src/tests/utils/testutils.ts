@@ -16,7 +16,7 @@ export function loadTestSuite(testManager: TestManager) {
 }
 
 export function primaryTestSuite(): TestSuite {
-  return TestSuite.fromJSON(readJsonSync("tests/resources/v2/testsuite.json"));
+  return TestSuite.fromJSON(readJsonSync("src/tests/resources/v2/testsuite.json"));
 }
 
 export function prepareTestManager() {
@@ -27,7 +27,7 @@ export function prepareTestManager() {
 }
 
 export function primaryRunSet(): TestRunSet {
-  return TestRunSet.fromJSON(readJsonSync("tests/resources/v2/run-1.json"));
+  return TestRunSet.fromJSON(readJsonSync("src/tests/resources/v2/run-1.json"));
 }
 
 export function existingRunId(testManager: TestManager): string {
