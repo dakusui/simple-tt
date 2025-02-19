@@ -1,13 +1,10 @@
-// components/UploadForm.tsx
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 
 const UploadForm = () => {
   const [file, setFile] = useState<File | null>(null);
   const [message, setMessage] = useState('');
-  const router = useRouter();
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files.length > 0) {
@@ -26,11 +23,20 @@ const UploadForm = () => {
     reader.onload = async () => {
       try {
         const jsonData = JSON.parse(reader.result as string);
-        // test-manager.tsの関数を呼び出す
-        // 例: await testManager.processData(jsonData);
+        console.log('Parsed JSON:', jsonData); // Debugging
 
-        setMessage('Upload successful.');
-        router.push('/status'); // アップロード後にステータスページへリダイレクト
+        const response = await fetch('/api/upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(jsonData)
+        });
+
+        const result = await response.json();
+        if (response.ok) {
+          setMessage(`Upload successful: ${result.fileName}`);
+        } else {
+          setMessage(`Error: ${result.error}`);
+        }
       } catch (error) {
         console.error('Invalid JSON file:', error);
         setMessage('Invalid JSON file.');
@@ -40,7 +46,6 @@ const UploadForm = () => {
 
   return (
     <div>
-      <h1>Upload Test Run</h1>
       <input type="file" accept="application/json" onChange={handleFileChange} />
       <button onClick={handleUpload}>Upload</button>
       <p>{message}</p>
