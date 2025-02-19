@@ -1,12 +1,15 @@
-// components/StatusTable.tsx
+// src/components/StatusTable.tsx
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 
 interface TestCase {
-  id: string;
-  name: string;
-  status: string;
+  testSuite: string;
+  testCase: string;
+  testResult: string;
+  executionTime: string;
+  manualAnalysis?: string;
 }
 
 const StatusTable = () => {
@@ -14,35 +17,39 @@ const StatusTable = () => {
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    // test-manager.tsからデータを取得する関数を呼び出す
-    // 例: const data = await testManager.getTestCases();
-    // setTestCases(data);
-
-    // 仮のデータ
-    setTestCases([
-      { id: '1', name: 'Test Case 1', status: 'Passed' },
-      { id: '2', name: 'Test Case 2', status: 'Failed' },
-    ]);
+    fetch('/api/recent-status')
+      .then((res) => res.json())
+      .then((data) => setTestCases(Array.isArray(data) ? data : []))
+      .catch(() => setMessage('Failed to load test case statuses'));
   }, []);
 
   return (
     <div>
-      <h1>Test Case Status</h1>
       {message && <p>{message}</p>}
-      <table>
+      <table border={1} cellPadding={5}>
         <thead>
           <tr>
-            <th>ID</th>
-            <th>Name</th>
-            <th>Status</th>
+            <th>Test Suite</th>
+            <th>Test Case</th>
+            <th>Result</th>
+            <th>Last Run</th>
+            <th>Manual Analysis</th>
           </tr>
         </thead>
         <tbody>
-          {testCases.map((testCase) => (
-            <tr key={testCase.id}>
-              <td>{testCase.id}</td>
-              <td>{testCase.name}</td>
-              <td>{testCase.status}</td>
+          {testCases.map((test, index) => (
+            <tr key={index}>
+              <td>{test.testSuite}</td>
+              <td>
+                <Link href={`/test-case/${encodeURIComponent(test.testCase)}`}>
+                  {test.testCase}
+                </Link>
+              </td>
+              <td style={{ color: test.testResult === 'FAIL' ? 'red' : 'black' }}>
+                {test.testResult}
+              </td>
+              <td>{new Date(test.executionTime).toLocaleString()}</td>
+              <td>{test.manualAnalysis || 'N/A'}</td>
             </tr>
           ))}
         </tbody>
