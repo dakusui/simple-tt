@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import { TESTRUNS_DIR } from "../../../models/constants";
 import fs from "fs";
 import path from "path";
-import { handleError } from "../../../models/validations";
+import { handleError } from "../../../src/models/validations";
 import { NextResponse } from "next/server";
 
 export default function POST(req: NextRequest) {

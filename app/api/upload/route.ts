@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { TestManager, TestRunSet, TestSuite } from "../../../models/test-manager";
+import { TestManager, TestRunSet, TestSuite } from "../../../src/models/test-manager";
 
 const testManager = new TestManager(process.env.DATA_DIR || "data");
 
