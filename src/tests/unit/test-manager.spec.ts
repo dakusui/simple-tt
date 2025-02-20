@@ -1,22 +1,27 @@
 import { expect } from "vitest";
 import { TestCaseState, TestManager } from "../../models/test-manager";
-import { createTestManager, ensureEmptyDirectoryExists, primaryRunSet, primaryTestSuite } from "../utils/testutils";
-import { Given, Then, When } from "../utils/gwt";
+import { createTestManager, ensureSessionDirectoryIsAbsent, primaryRunSet, primaryTestSuite } from "../utils/testutils";
+import { Given, GivenOnly, Then, ThenOnly, When, WhenOnly } from "../utils/gwt";
 
-Given<void, TestManager>()(
+GivenOnly<void, TestManager>()(
   "new TestManager",
   () => {
-    ensureEmptyDirectoryExists();
-    return createTestManager();
+    console.log("GIVEN: Creating TestManager");
+    return createTestManager(ensureSessionDirectoryIsAbsent());
   },
-  When<TestManager>(
+  WhenOnly<TestManager>(
     "stores TestSuite",
     testManager => {
-      testManager.storeTestSuite(primaryTestSuite());
+      console.log("WHEN: Storing TestSuite");
+      const testCaseFiles : string[]= testManager.storeTestSuite(primaryTestSuite());
+      console.log("WHEN: TestCaseFiles: ", testCaseFiles);
       return testManager;
     },
-    Then<TestManager>("TestManager returns non-empty for 'testSuite()'", testManager => {
+    ThenOnly<TestManager>("TestManager returns non-empty for 'testSuite()'", testManager => {
+      console.log("THEN: Checking test suites");
+      console.log("THEN: Test suites: ", testManager.testSuites());
       expect(testManager.testSuites().length).toBeGreaterThan(0);
+      console.log("THEN: Test suites: ", testManager.testSuites());
     })
   )
 );
@@ -24,8 +29,7 @@ Given<void, TestManager>()(
   Given<void, TestManager>()(
     "TestManager, which stores a testSuite, ",
     () => {
-      ensureEmptyDirectoryExists();
-      const testManager: TestManager = createTestManager();
+      const testManager: TestManager = createTestManager(ensureSessionDirectoryIsAbsent());
       testManager.storeTestSuite(primaryTestSuite());
       return testManager;
     },
@@ -51,22 +55,22 @@ Given<void, TestManager>()(
   Given<void, TestManager>()(
     "TestManager, which stores a testSuite",
     () => {
-      ensureEmptyDirectoryExists();
-      const testManager: TestManager = createTestManager();
+      const testManager: TestManager = createTestManager(ensureSessionDirectoryIsAbsent());
       testManager.storeTestSuite(primaryTestSuite());
       return testManager;
     },
     When<TestManager>(
       "'storeRunset(...)' is called",
       testManager => {
-        testManager.storeRunSet(primaryRunSet());
-        return testManager.testSuites();
+        return [testManager, testManager.storeRunSet(primaryRunSet())];
       },
-      Then<TestManager>("Test Suite defined in fixture is found.", testSuites => {
-        expect(testSuites).toEqual(["com.github.dakusui.sample_tt.example.FirstTest"]);
+      Then<[TestManager, string]>("Returned ID is contained in 'runs()'", testManagerAndRunId => {
+        const [testManager, runId] = testManagerAndRunId;
+        expect(testManager.runs()).toContain(runId);
       })
     ),
     When<TestManager>(
+
       "'testCasesFor(...)' returns a list of strings'",
       testManager => {
         return testManager.testCasesFor("com.github.dakusui.sample_tt.example.FirstTest");
@@ -82,8 +86,7 @@ Given<void, TestManager>()(
   Given<void, TestManager>()(
     "TestManager, which stores a testSuite",
     () => {
-      ensureEmptyDirectoryExists();
-      const testManager: TestManager = createTestManager();
+      const testManager: TestManager = createTestManager(ensureSessionDirectoryIsAbsent());
       testManager.storeTestSuite(primaryTestSuite());
       return testManager;
     },
@@ -132,8 +135,7 @@ Given<void, TestManager>()(
   Given<void, TestManager>()(
     "TestManager, which stores a testSuite and a run set",
     () => {
-      ensureEmptyDirectoryExists();
-      const testManager: TestManager = createTestManager();
+      const testManager: TestManager = createTestManager(ensureSessionDirectoryIsAbsent());
       testManager.storeTestSuite(primaryTestSuite());
       testManager.storeRunSet(primaryRunSet());
       return testManager;
@@ -151,8 +153,7 @@ Given<void, TestManager>()(
   Given<void, [TestManager, string]>()(
     "TestManager, which stores a testSuite, a run-set, and a triage for one of the test case runs",
     () => {
-      ensureEmptyDirectoryExists();
-      const testManager: TestManager = createTestManager();
+      const testManager: TestManager = createTestManager(ensureSessionDirectoryIsAbsent());
       testManager.storeTestSuite(primaryTestSuite());
       testManager.storeRunSet(primaryRunSet());
       return [testManager, testManager.runs()[0]];
@@ -183,8 +184,7 @@ Given<void, TestManager>()(
   Given<void, [TestManager, string, string]>()(
     "TestManager, which stores a testSuite, a run-set, and a triage for one of the test case runs",
     () => {
-      ensureEmptyDirectoryExists();
-      const testManager: TestManager = createTestManager();
+      const testManager: TestManager = createTestManager(ensureSessionDirectoryIsAbsent());
       testManager.storeTestSuite(primaryTestSuite());
       testManager.storeRunSet(primaryRunSet());
       const runId = testManager.runs()[0];

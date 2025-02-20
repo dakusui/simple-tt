@@ -1,11 +1,11 @@
-// src/app/status/page.tsx
-import StatusTable from '@/components/StatusTable';
+// src/app/upload/page.tsx
+import UploadForm from '@/components/UploadForm';
 
-export default function StatusPage() {
+export default function UploadPage() {
   return (
     <div>
-      <h1>Recent Test Case Statuses</h1>
-      <StatusTable />
+      <h1>Upload Test Run</h1>
+      <UploadForm />
     </div>
   );
 }

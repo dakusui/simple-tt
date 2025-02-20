@@ -3,17 +3,10 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-
-interface TestCase {
-  testSuite: string;
-  testCase: string;
-  testResult: string;
-  executionTime: string;
-  manualAnalysis?: string;
-}
+import { TestCaseState } from '@/models/test-manager';
 
 const StatusTable = () => {
-  const [testCases, setTestCases] = useState<TestCase[]>([]);
+  const [ testCases, setTestCases] = useState<TestCaseState[]>([]);
   const [message, setMessage] = useState('');
 
   useEffect(() => {
@@ -32,24 +25,26 @@ const StatusTable = () => {
             <th>Test Suite</th>
             <th>Test Case</th>
             <th>Result</th>
+            <th>Triage</th>
             <th>Last Run</th>
-            <th>Manual Analysis</th>
           </tr>
         </thead>
         <tbody>
           {testCases.map((test, index) => (
             <tr key={index}>
-              <td>{test.testSuite}</td>
+              <td><code>{test.testSuiteId}</code></td>
               <td>
-                <Link href={`/test-case/${encodeURIComponent(test.testCase)}`}>
-                  {test.testCase}
+                <Link href={`/test-case/${encodeURIComponent(test.testCaseId)}`}>
+                  <code>{test.testCaseId}</code>
                 </Link>
               </td>
-              <td style={{ color: test.testResult === 'FAIL' ? 'red' : 'black' }}>
-                {test.testResult}
+              <td style={{ color: test.lastResult === 'FAIL' ? 'red' : 'black' }}>
+                {test.lastResult}
               </td>
-              <td>{new Date(test.executionTime).toLocaleString()}</td>
-              <td>{test.manualAnalysis || 'N/A'}</td>
+              <td>
+                {test.lastTriageNote?.insight || 'N/A'}
+              </td>
+              <td>{test.lastStartDate ? test.lastStartDate.toString() : ""} {test.lastElapsedTime ? ("(" + (test.lastElapsedTime /1000) + "[s])") : ""}</td>
             </tr>
           ))}
         </tbody>

@@ -1,48 +1,21 @@
 import path from "path";
-import fs from 'fs';
 import { ensureDirectoryExists, readObjectFromJson, saveFile } from "./utils";
 import { existsSync, readdirSync } from "fs";
 import superjson from "superjson";
 
 // src/models/test-manager.ts
-// src/models/test-manager.ts
 
-const testRunDir = path.join(process.cwd(), 'data', 'test-runs');
+const testManagerDataDir: string = path.join(process.cwd(), "data", "test-manager");
 
-export async function storeTestRun(jsonData: any): Promise<string> {
-    if (!fs.existsSync(testRunDir)) {
-        fs.mkdirSync(testRunDir, { recursive: true });
-    }
-
-    // Generate a filename based on timestamp or other unique identifier
-    const fileName = `test-run-${Date.now()}.json`;
-    const filePath = path.join(testRunDir, fileName);
-
-    // Write the JSON data to a file
-    fs.writeFileSync(filePath, JSON.stringify(jsonData, null, 2), 'utf-8');
-
-    console.log(`Test run stored as: ${filePath}`);
-    return fileName;
+export async function storeTestRun(jsonData: object): Promise<string> {
+  const testManager: TestManager = new TestManager(testManagerDataDir);
+  return testManager.storeRunSet(TestRunSet.fromJSON(jsonData as TestRunSetJSON));
 }
 
-export async function getRecentStatuses() {
+export async function getRecentStatuses(): Promise<TestCaseState[]> {
   // Mock data for testing, replace with actual data fetching logic
-  return [
-      {
-          testSuite: 'Suite A',
-          testCase: 'Test Case 1',
-          testResult: 'PASS',
-          executionTime: new Date().toISOString(),
-          manualAnalysis: 'Looks good'
-      },
-      {
-          testSuite: 'Suite B',
-          testCase: 'Test Case 2',
-          testResult: 'FAIL',
-          executionTime: new Date().toISOString(),
-          manualAnalysis: ''
-      }
-  ];
+  const testManager: TestManager = new TestManager(testManagerDataDir);
+  return testManager.fetchTestCaseStates();
 }
 
 /**
@@ -64,7 +37,7 @@ export async function getRecentStatuses() {
 export class TestManager {
   constructor(public baseDir: string) {}
 
-  fetchTestCaseStates() {
+  fetchTestCaseStates(): TestCaseState[] {
     return this.testSuites()
       .flatMap(testSuiteId => {
         return this.testCasesFor(testSuiteId).map(testCaseId => [testSuiteId, testCaseId]);
@@ -74,18 +47,26 @@ export class TestManager {
       });
   }
 
-  fetchTestCaseState(testSuiteId: string, testCaseId: string): TestCaseState {
-    const lastResult = this.fetchLastRunFor(testSuiteId, testCaseId)?.result as string | null;
-    if (this.existsTriage(this.lastRunIdFor(testSuiteId, testCaseId) as string, testSuiteId, testCaseId)) {
-      const lastTriageNote = this.fetchLastTriageFor(testSuiteId, testCaseId)?.note as {
-        ticket: string;
-        insight: string;
-        by: string;
-        at: Date;
-      };
-      return new TestCaseState(testSuiteId, testCaseId, lastResult, lastTriageNote);
-    }
-    return new TestCaseState(testSuiteId, testCaseId, lastResult, null);
+  fetchTestCaseState(testSuiteId: string, testCaseId: string): TestCaseStateImpl {
+    const lastRun: TestCaseRun | null = this.fetchLastRunFor(testSuiteId, testCaseId);
+    const lastResult: string | null = lastRun?.result as string | null;
+    const lastStartDate: Date | null = lastRun?.duration.start as Date | null;
+    const lastElapsedTime: number | undefined = lastRun?.duration.elapsedTime();
+    const lastTriageNote: TriageNote | undefined = this.existsTriage(
+      this.lastRunIdFor(testSuiteId, testCaseId) as string,
+      testSuiteId,
+      testCaseId
+    )
+      ? this.fetchLastTriageFor(testSuiteId, testCaseId)?.note
+      : undefined;
+    return new TestCaseStateImpl(
+      testSuiteId,
+      testCaseId,
+      lastResult,
+      lastStartDate,
+      lastElapsedTime ? lastElapsedTime : null,
+      lastTriageNote ? lastTriageNote : null
+    );
   }
 
   fetchLastRunFor(testSuiteId: string, testCaseId: string): TestCaseRun | null {
@@ -100,19 +81,24 @@ export class TestManager {
     return null;
   }
 
-  storeTestSuite(testSuite: TestSuite): void {
+  storeTestSuite(testSuite: TestSuite): string[] {
     const testSuitesDir = this.testSuiteDirFor(testSuite.id);
     ensureDirectoryExists(testSuitesDir);
     saveFile(path.join(testSuitesDir, "testSuite.json"), superjson.stringify({ description: testSuite.description }));
+    const ret: string[] = [];
     for (const each of testSuite.testCases) {
+      const fileName: string = path.join(testSuitesDir, "testCase-" + each.id + ".json")
+      ret.push(fileName);
       saveFile(
-        path.join(testSuitesDir, "testCase-" + each.id + ".json"),
+        fileName,
         superjson.stringify({ description: each.description })
       );
     }
+    return ret;
   }
 
-  storeRunSet(testRunSet: TestRunSet): void {
+  storeRunSet(testRunSet: TestRunSet): string {
+    console.log("Storing run set:" + testRunSet);
     const runId: string = this.generateRunId();
     const env: TestEnvironment = testRunSet.environment;
 
@@ -133,6 +119,7 @@ export class TestManager {
         })
       );
     }
+    return runId;
   }
 
   existsTriage(runId: string, testSuiteId: string, testCaseId: string): boolean {
@@ -192,7 +179,7 @@ export class TestManager {
       testCaseId: testCaseId,
       result: json.result,
       environment: TestEnvironment.fromJSON(json.environment),
-      duration: Duration.fromJSON(json.duration)
+      duration: json.duration
     });
   }
 
@@ -248,7 +235,12 @@ export class TestManager {
   }
 
   private generateRunId() {
-    return new Date(Date.now()).toISOString().replaceAll(":", "-");
+    console.log("Generating run id:" + new Date(Date.now()).toISOString());
+    try {
+      return new Date(Date.now()).toISOString().replaceAll(":", "-");
+    } finally {
+      console.log("Generated run id:" + new Date(Date.now()).toISOString());
+    }
   }
 
   private runDirFor(runId: string) {
@@ -307,6 +299,16 @@ export class TestCase {
   }
 }
 
+type TestCaseRunUploadJSON = {
+  testSuiteId: string;
+  testCaseId: string;
+  result: string;
+  duration: DurationJSON;
+};
+type TestRunSetJSON = {
+  environment: TestEnvironmentJSON;
+  runs: TestCaseRunUploadJSON[];
+};
 export class TestRunSet {
   constructor(
     public environment: TestEnvironment,
@@ -316,9 +318,59 @@ export class TestRunSet {
     this.runs = runs;
   }
 
-  static fromJSON(json: { environment: { machine: string; user: string; branch: string }; runs: [] }): TestRunSet {
+  /**
+   * This method is used to upload a JSON to the system.
+   * The `json` should look like this file: `src/tests/resources/v2/run-1.json`
+   * ```json
+   *
+   * {
+   *   "environment": {
+   *     "machine": "theophilos",
+   *     "user": "hiroshi",
+   *     "branch": "test-branch"
+   *   },
+   *   "runs": [
+   *     {
+   *       "testSuiteId": "com.github.dakusui.sample_tt.example.FirstTest",
+   *       "testCaseId": "whenPerformDailyOperation_thenFinishesSuccessfully",
+   *       "result": "FAIL",
+   *       "duration": {
+   *         "start": "2025-01-31T12:30:10.000Z",
+   *         "end": "2025-01-31T12:30:59.123Z"
+   *       }
+   *     },
+   *     {
+   *       "testSuiteId": "com.github.dakusui.sample_tt.example.FirstTest",
+   *       "testCaseId": "whenPerformMonthlyOperation_thenFinishesSuccessfully",
+   *       "result": "FAIL",
+   *       "duration": {
+   *         "start": "2025-01-31T12:31:10.999",
+   *         "end": "2025-01-31T12:32:11.000"
+   *       }
+   *     }
+   *   ]
+   * }
+   * ```
+   *
+   * @param json The JSON object to be converted to TestRunSet
+   * @returns a new `TestRunset` object loaded from `json`.
+   */
+  static fromJSON(json: TestRunSetJSON): TestRunSet {
     const environment = TestEnvironment.fromJSON(json.environment);
-    return new TestRunSet(environment, TestCaseRun.fromJSONArray(environment, json.runs));
+    return new TestRunSet(
+      environment,
+      TestCaseRun.fromJSONArray(
+        environment,
+        json.runs.map(each => {
+          return {
+            testSuiteId: each.testSuiteId,
+            testCaseId: each.testCaseId,
+            result: each.result,
+            duration: each.duration
+          };
+        })
+      )
+    );
   }
 }
 
@@ -355,8 +407,8 @@ interface TestCaseRunJSON {
     branch: string;
   };
   duration: {
-    start: Date;
-    end: Date;
+    start: string;
+    end: string;
   };
 }
 export class TestCaseRun {
@@ -394,10 +446,10 @@ export class TestCaseRun {
     );
   }
 }
-interface DurationJSON {
-  start: Date;
-  end: Date;
-}
+type DurationJSON = {
+  start: string;
+  end: string;
+};
 export class Duration {
   constructor(
     public start: Date,
@@ -405,9 +457,13 @@ export class Duration {
   ) {}
 
   static fromJSON(duration: DurationJSON): Duration {
-    return new Duration(duration.start, duration.end);
+    return new Duration(new Date(Date.parse(duration.start)), new Date(Date.parse(duration.end)));
   }
 
+  elapsedTime(): number {
+    console.log("Calculating elapsed time: " + this.start + " - " + this.end);
+    return this.end.getTime() - this.start.getTime();
+  }
   toJSON() {
     return { start: this.start, end: this.end };
   }
@@ -418,7 +474,7 @@ export class Triage {
     public runId: string,
     public testSuiteId: string,
     public testCaseId: string,
-    public note: { ticket: string; insight: string; by: string; at: Date }
+    public note: TriageNote
   ) {}
 
   static fromJSON(value: {
@@ -449,17 +505,34 @@ export class Triage {
     };
   }
 }
+export type TestCaseState = {
+  testSuiteId: string;
+  testCaseId: string;
+  lastResult: string | null;
+  lastStartDate: Date | null;
+  lastElapsedTime: number | null;
+  lastTriageNote: {
+    ticket: string;
+    insight: string;
+    by: string;
+    at: Date;
+  } | null;
+};
 
-export class TestCaseState {
+type TriageNote = {
+  ticket: string;
+  insight: string;
+  by: string;
+  at: Date;
+};
+
+class TestCaseStateImpl {
   constructor(
     public testSuiteId: string,
     public testCaseId: string,
     public lastResult: string | null,
-    public lastTriageNote: {
-      ticket: string;
-      insight: string;
-      by: string;
-      at: Date;
-    } | null
+    public lastStartDate: Date | null,
+    public lastElapsedTime: number | null,
+    public lastTriageNote: TriageNote | null
   ) {}
 }

@@ -2,12 +2,14 @@ import { existsSync, rmSync } from "fs";
 import { TestManager, TestRunSet, TestSuite } from "../../models/test-manager";
 import { readJsonSync } from "../../models/utils";
 
-export function ensureEmptyDirectoryExists() {
-  if (existsSync("/tmp/hello")) rmSync("/tmp/hello", { recursive: true });
+export function ensureSessionDirectoryIsAbsent() : string {
+  const sessionId = Math.random().toString(36).substring(7);
+  if (existsSync("/tmp/test-manager/" + sessionId)) rmSync("/tmp/test-manager/" + sessionId, { recursive: true });
+  return sessionId;
 }
 
-export function createTestManager(): TestManager {
-  const testManager: TestManager = new TestManager("/tmp/hello");
+export function createTestManager(sessionId: string): TestManager {
+  const testManager: TestManager = new TestManager("/tmp/test-manager/" + sessionId);
   return testManager;
 }
 
@@ -20,8 +22,7 @@ export function primaryTestSuite(): TestSuite {
 }
 
 export function prepareTestManager() {
-  ensureEmptyDirectoryExists();
-  const ret = createTestManager();
+  const ret = createTestManager(ensureSessionDirectoryIsAbsent());
   loadTestSuite(ret);
   return ret;
 }
