@@ -13,7 +13,7 @@ const AnalysisForm = ({ testCaseId }: AnalysisFormProps) => {
 
   const handleSave = async () => {
     if (!analysis.trim()) {
-      setMessage('Analysis cannot be empty.');
+      setMessage('Triage cannot be empty.');
       return;
     }
 

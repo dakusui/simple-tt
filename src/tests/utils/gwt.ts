@@ -6,6 +6,12 @@ export function Given<T, U>(value?: T): (message: string, task: (value: T) => U,
     return __Given<T, U>(msg, task, whens)(value as T);
   };
 }
+export function GivenOnly<T, U>(value?: T): (message: string, task: (value: T) => U, ...whens: ((t: U) => void)[]) => void {
+  return (message, task, whens) => {
+    const msg: string = value ? message + ":<" + String(value) + ">" : message;
+    return __GivenOnly<T, U>(msg, task, whens)(value as T);
+  };
+}
 
 function __Given<T, U>(message: string, task: (value?: T) => U, ...whens: ((t: U) => void)[]): (value: T) => void {
   return value => {
@@ -17,7 +23,31 @@ function __Given<T, U>(message: string, task: (value?: T) => U, ...whens: ((t: U
     });
   };
 }
+function __GivenOnly<T, U>(message: string, task: (value?: T) => U, ...whens: ((t: U) => void)[]): (value: T) => void {
+  return value => {
+    describe.only("Given: " + message, () => {
+      for (const each of whens) {
+        const v = task(value);
+        each(v);
+      }
+    });
+  };
+}
 
+export function WhenOnly<U>(
+  message: string,
+  task: (value: U) => unknown,
+  ...thens: ((value: unknown) => void)[]
+): (value: U) => void {
+  return value => {
+    describe.only("When: " + message, () => {
+      for (const each of thens) {
+        const v = task(value);
+        each(v);
+      }
+    });
+  };
+}
 export function When<U>(
   message: string,
   task: (value: U) => unknown,
@@ -29,6 +59,14 @@ export function When<U>(
         const v = task(value);
         each(v);
       }
+    });
+  };
+}
+
+export function ThenOnly<V>(message: string, task: (v: V) => void): (v: V) => void {
+  return (v: V) => {
+    it.only("Then: " + message, () => {
+      return task(v);
     });
   };
 }

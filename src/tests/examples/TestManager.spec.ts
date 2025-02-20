@@ -1,7 +1,7 @@
 import { expect } from "vitest";
 
 import { TestManager } from "../../models/test-manager";
-import { createTestManager, ensureEmptyDirectoryExists, primaryRunSet, primaryTestSuite } from "../utils/testutils";
+import { createTestManager, ensureSessionDirectoryIsAbsent, primaryRunSet, primaryTestSuite } from "../utils/testutils";
 import { Ensure, Given, Then, When } from "../utils/gwt";
 import { existsSync, mkdirSync } from "fs";
 
@@ -88,7 +88,7 @@ const WORKING_DIRECTORY = "target/test-working-directory";
           createWorkingDirectory(WORKING_DIRECTORY);
         },
       );
-      ensureEmptyDirectoryExists();
+      ensureSessionDirectoryIsAbsent();
       return createTestManager();
     },
     When<TestManager>(
@@ -128,7 +128,7 @@ const WORKING_DIRECTORY = "target/test-working-directory";
   Given<void, TestManager>()(
     "TestManager, which stored a testSuite, ",
     () => {
-      ensureEmptyDirectoryExists();
+      ensureSessionDirectoryIsAbsent();
       const testManager: TestManager = createTestManager();
       testManager.storeTestSuite(primaryTestSuite());
       return testManager;
@@ -154,7 +154,7 @@ const WORKING_DIRECTORY = "target/test-working-directory";
   Given<void, TestManager>()(
     "TestManager, which stored a testSuite, ",
     () => {
-      ensureEmptyDirectoryExists();
+      ensureSessionDirectoryIsAbsent();
       const testManager: TestManager = createTestManager();
       testManager.storeTestSuite(primaryTestSuite());
       return testManager;
