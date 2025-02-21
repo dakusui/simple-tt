@@ -1,10 +1,10 @@
 
 import { expect } from "vitest";
 import { TestCaseState, TestManager } from "../../models/test-manager";
-import { Given, Then, When } from "../utils/gwt";
+import { Given, GivenOnly, Then, When } from "../utils/gwt";
 import { createTestManager, ensureSessionDirectoryIsAbsent, primaryRunSet, primaryTestSuite } from "../utils/testutils";
 
-Given<void, TestManager>()(
+GivenOnly<void, TestManager>()(
   "new TestManager",
   () => {
     console.log("GIVEN: Creating TestManager");
