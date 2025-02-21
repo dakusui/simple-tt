@@ -24,12 +24,12 @@ export function GivenSkip<T, U>(value?: T): (message: string, task: Func<T, U>, 
 
 function __Given<T, U>(describeFunc, message: string, task: Func<T | undefined, U>, ...whens: Task<U>[]): Task<T> {
   return value => {
-    describeFunc("Given: " + message, () => {
-      for (const each of whens) {
+    for (const each of whens) {
+      describeFunc("Given: " + message, () => {
         const v = task(value);
         each(v);
-      }
-    });
+      });
+    }
   };
 }
 
