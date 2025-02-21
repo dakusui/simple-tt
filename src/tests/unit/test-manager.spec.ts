@@ -1,27 +1,39 @@
+
 import { expect } from "vitest";
 import { TestCaseState, TestManager } from "../../models/test-manager";
+import { Given, Then, When } from "../utils/gwt";
 import { createTestManager, ensureSessionDirectoryIsAbsent, primaryRunSet, primaryTestSuite } from "../utils/testutils";
-import { Given, GivenOnly, Then, ThenOnly, When, WhenOnly } from "../utils/gwt";
 
-GivenOnly<void, TestManager>()(
+Given<void, TestManager>()(
   "new TestManager",
   () => {
     console.log("GIVEN: Creating TestManager");
     return createTestManager(ensureSessionDirectoryIsAbsent());
   },
-  WhenOnly<TestManager>(
+  When<TestManager, TestManager>(
     "stores TestSuite",
     testManager => {
       console.log("WHEN: Storing TestSuite");
-      const testCaseFiles : string[]= testManager.storeTestSuite(primaryTestSuite());
+      const testCaseFiles: string[] = testManager.storeTestSuite(primaryTestSuite());
       console.log("WHEN: TestCaseFiles: ", testCaseFiles);
       return testManager;
     },
-    ThenOnly<TestManager>("TestManager returns non-empty for 'testSuite()'", testManager => {
+    Then<TestManager>("TestManager returns non-empty for 'testSuite()'", testManager => {
       console.log("THEN: Checking test suites");
       console.log("THEN: Test suites: ", testManager.testSuites());
       expect(testManager.testSuites().length).toBeGreaterThan(0);
       console.log("THEN: Test suites: ", testManager.testSuites());
+    })
+  ),
+  When<TestManager, TestManager>(
+    "stores TestSuite (2)",
+    testManager => {
+      const testCaseFiles: string[] = testManager.storeTestSuite(primaryTestSuite());
+      console.log("WHEN: TestCaseFiles: ", testCaseFiles);
+      return testManager;
+    },
+    Then<TestManager>("TestManager returns non-empty for 'testSuite()'", testManager => {
+      expect(testManager.testSuites().length).toBeGreaterThan(0);
     })
   )
 );
@@ -33,21 +45,21 @@ GivenOnly<void, TestManager>()(
       testManager.storeTestSuite(primaryTestSuite());
       return testManager;
     },
-    When<TestManager>(
+    When<TestManager, string[]>(
       "'testSuites()' is called",
       testManager => {
         return testManager.testSuites();
       },
-      Then<TestManager>("Only one element is found", testSuites => {
+      Then<string[]>("Only one element is found", testSuites => {
         expect(testSuites).toEqual(["com.github.dakusui.sample_tt.example.FirstTest"]);
       })
     ),
-    When<TestManager>(
+    When<TestManager, string[]>(
       "'testCasesFor(...)' is performed",
       testManager => {
         return testManager.testCasesFor("com.github.dakusui.sample_tt.example.FirstTest");
       },
-      Then<TestManager>("Expected test case ID is returned.", returnedList => {
+      Then<string[]>("Expected test case ID is returned.", returnedList => {
         expect(returnedList).toEqual(["whenPerformDailyOperation_thenFinishesSuccessfully"]);
       })
     )
@@ -59,8 +71,8 @@ GivenOnly<void, TestManager>()(
       testManager.storeTestSuite(primaryTestSuite());
       return testManager;
     },
-    When<TestManager>(
-      "'storeRunset(...)' is called",
+    When<TestManager, [TestManager, string]>(
+      "'storeRunSet(...)' is called",
       testManager => {
         return [testManager, testManager.storeRunSet(primaryRunSet())];
       },
@@ -69,13 +81,12 @@ GivenOnly<void, TestManager>()(
         expect(testManager.runs()).toContain(runId);
       })
     ),
-    When<TestManager>(
-
+    When<TestManager, string[]>(
       "'testCasesFor(...)' returns a list of strings'",
       testManager => {
         return testManager.testCasesFor("com.github.dakusui.sample_tt.example.FirstTest");
       },
-      Then<TestManager>("Two test cases from test suite and test run are found", returnedList => {
+      Then<string[]>("Two test cases from test suite and test run are found", returnedList => {
         expect(returnedList).toEqual([
           "whenPerformDailyOperation_thenFinishesSuccessfully",
           "whenPerformMonthlyOperation_thenFinishesSuccessfully"
@@ -90,7 +101,7 @@ GivenOnly<void, TestManager>()(
       testManager.storeTestSuite(primaryTestSuite());
       return testManager;
     },
-    When<TestManager>(
+    When<TestManager, TestCaseState[]>(
       "fetchTestCaseState is called over (testSuiteId, testCaseId)",
       testManager => {
         const ret: TestCaseState[] = [];
@@ -105,7 +116,7 @@ GivenOnly<void, TestManager>()(
         expect(testCaseStates.length).greaterThan(0);
       })
     ),
-    When<TestManager>(
+    When<TestManager, string[]>(
       "testCasesForRun is called over (runId, testSuiteId with run)",
       testManager => {
         const ret: string[] = [];
@@ -123,10 +134,11 @@ GivenOnly<void, TestManager>()(
         expect(testCaseIds.every(e => e.length > 0)).toBeTruthy();
       })
     ),
-    When<TestManager>(
+    When<TestManager, string[]>(
       "testCasesForRun is called with non-existing runId",
       testManager => {
-        return testManager.testCasesForRun("non-existing-run-id", "com.github.dakusui.sample_tt.example.FirstTest");},
+        return testManager.testCasesForRun("non-existing-run-id", "com.github.dakusui.sample_tt.example.FirstTest");
+      },
       Then<string[]>("testsCaseIds ARE empty", testCaseIds => {
         expect(testCaseIds.length).eq(0);
       })
@@ -140,7 +152,7 @@ GivenOnly<void, TestManager>()(
       testManager.storeRunSet(primaryRunSet());
       return testManager;
     },
-    When<TestManager>(
+    When<TestManager, TestCaseState[]>(
       "fetchTestCaseState is called over (testSuiteId, testCaseId)",
       testManager => {
         return testManager.fetchTestCaseStates();
@@ -158,7 +170,7 @@ GivenOnly<void, TestManager>()(
       testManager.storeRunSet(primaryRunSet());
       return [testManager, testManager.runs()[0]];
     },
-    When<[TestManager, string]>(
+    When<[TestManager, string], TestManager>(
       "storeTriage(...) is called",
       testManagerAndRunId => {
         const [testManager, runId] = testManagerAndRunId;
@@ -198,7 +210,7 @@ GivenOnly<void, TestManager>()(
       });
       return [testManager, testSuiteId, testCaseId];
     },
-    When<[TestManager, string, string]>(
+    When<[TestManager, string, string], TestCaseState>(
       "fetchTestCaseState(...) is called",
       context => {
         const [testManager, testSuiteId, testCaseId] = context;
