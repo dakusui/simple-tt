@@ -87,18 +87,14 @@ export class TestManager {
     saveFile(path.join(testSuitesDir, "testSuite.json"), superjson.stringify({ description: testSuite.description }));
     const ret: string[] = [];
     for (const each of testSuite.testCases) {
-      const fileName: string = path.join(testSuitesDir, "testCase-" + each.id + ".json")
+      const fileName: string = path.join(testSuitesDir, "testCase-" + each.id + ".json");
       ret.push(fileName);
-      saveFile(
-        fileName,
-        superjson.stringify({ description: each.description })
-      );
+      saveFile(fileName, superjson.stringify({ description: each.description }));
     }
     return ret;
   }
 
   storeRunSet(testRunSet: TestRunSet): string {
-    console.log("Storing run set:" + testRunSet);
     const runId: string = this.generateRunId();
     const env: TestEnvironment = testRunSet.environment;
 
@@ -236,11 +232,7 @@ export class TestManager {
 
   private generateRunId() {
     console.log("Generating run id:" + new Date(Date.now()).toISOString());
-    try {
-      return new Date(Date.now()).toISOString().replaceAll(":", "-");
-    } finally {
-      console.log("Generated run id:" + new Date(Date.now()).toISOString());
-    }
+    return new Date(Date.now()).toISOString().replaceAll(":", "-");
   }
 
   private runDirFor(runId: string) {
@@ -461,9 +453,9 @@ export class Duration {
   }
 
   elapsedTime(): number {
-    console.log("Calculating elapsed time: " + this.start + " - " + this.end);
     return this.end.getTime() - this.start.getTime();
   }
+
   toJSON() {
     return { start: this.start, end: this.end };
   }

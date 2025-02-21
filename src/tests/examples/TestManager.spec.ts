@@ -88,10 +88,10 @@ const WORKING_DIRECTORY = "target/test-working-directory";
           createWorkingDirectory(WORKING_DIRECTORY);
         },
       );
-      ensureSessionDirectoryIsAbsent();
-      return createTestManager();
+      
+      return createTestManager(ensureSessionDirectoryIsAbsent());
     },
-    When<TestManager>(
+    When<TestManager, TestManager>(
       "stores TestSuite",
       testManager => {
         testManager.storeTestSuite(primaryTestSuite());
@@ -108,10 +108,9 @@ const WORKING_DIRECTORY = "target/test-working-directory";
   Given()(
     "new TestManager",
     () => {
-      ensureWorkingDirecotryEmpty(WORKING_DIRECTORY)     
-      return createTestManager();
+      return createTestManager(ensureSessionDirectoryIsAbsent());
     },
-    When<TestManager>(
+    When<TestManager, TestManager>(
       "stores TestSuite",
       testManager => {
         testManager.storeTestSuite(primaryTestSuite());
@@ -128,8 +127,7 @@ const WORKING_DIRECTORY = "target/test-working-directory";
   Given<void, TestManager>()(
     "TestManager, which stored a testSuite, ",
     () => {
-      ensureSessionDirectoryIsAbsent();
-      const testManager: TestManager = createTestManager();
+      const testManager: TestManager = createTestManager(ensureSessionDirectoryIsAbsent());
       testManager.storeTestSuite(primaryTestSuite());
       return testManager;
     },
@@ -154,8 +152,7 @@ const WORKING_DIRECTORY = "target/test-working-directory";
   Given<void, TestManager>()(
     "TestManager, which stored a testSuite, ",
     () => {
-      ensureSessionDirectoryIsAbsent();
-      const testManager: TestManager = createTestManager();
+      const testManager: TestManager = createTestManager(ensureSessionDirectoryIsAbsent());
       testManager.storeTestSuite(primaryTestSuite());
       return testManager;
     },
