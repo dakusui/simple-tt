@@ -1,5 +1,6 @@
 import { existsSync, rmSync } from "fs";
-import { TestManager, TestRunSet, TestSuite } from "../../models/test-manager";
+import { TestRunSet, TestSuite } from "../../models/test-entities";
+import { TestManager  } from "../../models/test-manager";
 import { readJsonSync } from "../../models/utils";
 
 export function ensureSessionDirectoryIsAbsent() : string {

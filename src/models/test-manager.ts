@@ -1,7 +1,19 @@
-import path from "path";
-import { ensureDirectoryExists, readObjectFromJson, saveFile } from "./utils";
 import { existsSync, readdirSync } from "fs";
+import path from "path";
 import superjson from "superjson";
+import {
+  createTestCaseState,
+  TestCaseRun,
+  TestCaseRunJSON,
+  TestCaseState,
+  TestEnvironment,
+  TestRunSet,
+  TestRunSetJSON,
+  TestSuite,
+  Triage,
+  TriageNote
+} from "./test-entities";
+import { ensureDirectoryExists, readObjectFromJson, saveFile } from "./utils";
 
 // src/models/test-manager.ts
 
@@ -12,10 +24,16 @@ export async function storeTestRun(jsonData: object): Promise<string> {
   return testManager.storeRunSet(TestRunSet.fromJSON(jsonData as TestRunSetJSON));
 }
 
-export async function getRecentStatuses(): Promise<TestCaseState[]> {
+export async function fetchRecentStatuses(): Promise<TestCaseState[]> {
   // Mock data for testing, replace with actual data fetching logic
   const testManager: TestManager = new TestManager(testManagerDataDir);
-  return testManager.fetchTestCaseStates();
+  return testManager.retrieveTestCaseStates();
+}
+
+export async function fetchTestCaseRunHistory(testSuiteId: string, testCaseId: string): Promise<TestCaseRun[]> {
+  // Mock data for testing, replace with actual data fetching logic
+  const testManager: TestManager = new TestManager(testManagerDataDir);
+  return testManager.retrieveRunHistoryFor(testSuiteId, testCaseId);
 }
 
 /**
@@ -37,48 +55,47 @@ export async function getRecentStatuses(): Promise<TestCaseState[]> {
 export class TestManager {
   constructor(public baseDir: string) {}
 
-  fetchTestCaseStates(): TestCaseState[] {
+  retrieveTestCaseStates(): TestCaseState[] {
     return this.testSuites()
       .flatMap(testSuiteId => {
         return this.testCasesFor(testSuiteId).map(testCaseId => [testSuiteId, testCaseId]);
       })
       .map(v => {
-        return this.fetchTestCaseState(v[0], v[1]);
+        return this.retrieveTestCaseState(v[0], v[1]);
       });
   }
 
-  fetchTestCaseState(testSuiteId: string, testCaseId: string): TestCaseStateImpl {
-    const lastRun: TestCaseRun | null = this.fetchLastRunFor(testSuiteId, testCaseId);
-    const lastResult: string | null = lastRun?.result as string | null;
-    const lastStartDate: Date | null = lastRun?.duration.start as Date | null;
+  retrieveTestCaseState(testSuiteId: string, testCaseId: string): TestCaseState {
+    const lastRun: TestCaseRun | undefined = this.retrieveLastRunFor(testSuiteId, testCaseId) ?? undefined;
+    const lastResult: string | undefined = (lastRun?.result as string) ?? undefined;
+    const lastStartDate: Date | undefined = (lastRun?.duration.start as Date) ?? undefined;
     const lastElapsedTime: number | undefined = lastRun?.duration.elapsedTime();
     const lastTriageNote: TriageNote | undefined = this.existsTriage(
       this.lastRunIdFor(testSuiteId, testCaseId) as string,
       testSuiteId,
       testCaseId
     )
-      ? this.fetchLastTriageFor(testSuiteId, testCaseId)?.note
+      ? this.retrieveLastTriageFor(testSuiteId, testCaseId)?.note
       : undefined;
-    return new TestCaseStateImpl(
-      testSuiteId,
-      testCaseId,
-      lastResult,
-      lastStartDate,
-      lastElapsedTime ? lastElapsedTime : null,
-      lastTriageNote ? lastTriageNote : null
-    );
+    return createTestCaseState(testSuiteId, testCaseId, lastResult, lastStartDate, lastElapsedTime, lastTriageNote);
   }
 
-  fetchLastRunFor(testSuiteId: string, testCaseId: string): TestCaseRun | null {
+  retrieveLastRunFor(testSuiteId: string, testCaseId: string): TestCaseRun | null {
     const lastRunId: string | null = this.lastRunIdFor(testSuiteId, testCaseId);
-    if (lastRunId != null) return this.fetchTestCaseRun(lastRunId, testSuiteId, testCaseId);
+    if (lastRunId != null) return this.retrieveTestCaseRun(lastRunId, testSuiteId, testCaseId);
     return null;
   }
 
-  fetchLastTriageFor(testSuiteId: string, testCaseId: string): Triage | null {
+  retrieveLastTriageFor(testSuiteId: string, testCaseId: string): Triage | null {
     const lastTriagedRunId: string | null = this.lastTriagedRunIdFor(testSuiteId, testCaseId);
-    if (lastTriagedRunId != null) return this.fetchTriage(lastTriagedRunId, testSuiteId, testCaseId);
+    if (lastTriagedRunId != null) return this.retrieveTriage(lastTriagedRunId, testSuiteId, testCaseId);
     return null;
+  }
+
+  retrieveRunHistoryFor(testSuiteId: string, testCaseId: string): TestCaseRun[] {
+    return this.runs()
+      .filter(runId => this.existsTestCaseRun(runId, testSuiteId, testCaseId))
+      .map(runId => this.retrieveTestCaseRun(runId, testSuiteId, testCaseId));
   }
 
   storeTestSuite(testSuite: TestSuite): string[] {
@@ -133,7 +150,7 @@ export class TestManager {
     saveFile(triageFilePath, superjson.stringify(note));
   }
 
-  fetchTriage(runId: string, testSuiteId: string, testCaseId: string): Triage {
+  retrieveTriage(runId: string, testSuiteId: string, testCaseId: string): Triage {
     const triageFile: string = this.triageFilePath(runId, testSuiteId, testCaseId);
     return new Triage(runId, testSuiteId, testCaseId, readObjectFromJson(triageFile));
   }
@@ -166,7 +183,7 @@ export class TestManager {
     return existsSync(this.pathForTestCaseRun(runId, testSuiteId, testCaseId));
   }
 
-  fetchTestCaseRun(runId: string, testSuiteId: string, testCaseId: string): TestCaseRun {
+  retrieveTestCaseRun(runId: string, testSuiteId: string, testCaseId: string): TestCaseRun {
     const json: TestCaseRunJSON = readObjectFromJson(
       this.pathForTestCaseRun(runId, testSuiteId, testCaseId)
     ) as TestCaseRunJSON;
@@ -258,273 +275,4 @@ export class TestManager {
   private triagesDir() {
     return path.join(this.baseDir, "triages");
   }
-}
-
-export class TestSuite {
-  constructor(
-    public id: string,
-    public description: string,
-    public testCases: TestCase[]
-  ) {
-    this.id = id;
-    this.description = description;
-  }
-  static fromJSON(json: { id: string; description: string; testCases: [] }): TestSuite {
-    return new TestSuite(json.id, json.description, TestCase.fromJSONArray(json.testCases));
-  }
-}
-
-export class TestCase {
-  constructor(
-    public id: string,
-    public description: string
-  ) {
-    this.id = id;
-    this.description = description;
-  }
-
-  static fromJSON(json: { id: string; description: string }) {
-    return new TestCase(json.id, json.description);
-  }
-  static fromJSONArray(arr: []): TestCase[] {
-    return arr.map(each => TestCase.fromJSON(each));
-  }
-}
-
-type TestCaseRunUploadJSON = {
-  testSuiteId: string;
-  testCaseId: string;
-  result: string;
-  duration: DurationJSON;
-};
-type TestRunSetJSON = {
-  environment: TestEnvironmentJSON;
-  runs: TestCaseRunUploadJSON[];
-};
-export class TestRunSet {
-  constructor(
-    public environment: TestEnvironment,
-    public runs: TestCaseRun[]
-  ) {
-    this.environment = environment;
-    this.runs = runs;
-  }
-
-  /**
-   * This method is used to upload a JSON to the system.
-   * The `json` should look like this file: `src/tests/resources/v2/run-1.json`
-   * ```json
-   *
-   * {
-   *   "environment": {
-   *     "machine": "theophilos",
-   *     "user": "hiroshi",
-   *     "branch": "test-branch"
-   *   },
-   *   "runs": [
-   *     {
-   *       "testSuiteId": "com.github.dakusui.sample_tt.example.FirstTest",
-   *       "testCaseId": "whenPerformDailyOperation_thenFinishesSuccessfully",
-   *       "result": "FAIL",
-   *       "duration": {
-   *         "start": "2025-01-31T12:30:10.000Z",
-   *         "end": "2025-01-31T12:30:59.123Z"
-   *       }
-   *     },
-   *     {
-   *       "testSuiteId": "com.github.dakusui.sample_tt.example.FirstTest",
-   *       "testCaseId": "whenPerformMonthlyOperation_thenFinishesSuccessfully",
-   *       "result": "FAIL",
-   *       "duration": {
-   *         "start": "2025-01-31T12:31:10.999",
-   *         "end": "2025-01-31T12:32:11.000"
-   *       }
-   *     }
-   *   ]
-   * }
-   * ```
-   *
-   * @param json The JSON object to be converted to TestRunSet
-   * @returns a new `TestRunset` object loaded from `json`.
-   */
-  static fromJSON(json: TestRunSetJSON): TestRunSet {
-    const environment = TestEnvironment.fromJSON(json.environment);
-    return new TestRunSet(
-      environment,
-      TestCaseRun.fromJSONArray(
-        environment,
-        json.runs.map(each => {
-          return {
-            testSuiteId: each.testSuiteId,
-            testCaseId: each.testCaseId,
-            result: each.result,
-            duration: each.duration
-          };
-        })
-      )
-    );
-  }
-}
-
-interface TestEnvironmentJSON {
-  machine: string;
-  user: string;
-  branch: string;
-}
-export class TestEnvironment {
-  constructor(
-    public machine: string,
-    public user: string,
-    public branch: string
-  ) {}
-
-  static fromJSON(json: TestEnvironmentJSON) {
-    return new TestEnvironment(json.machine, json.user, json.branch);
-  }
-
-  toJSON() {
-    return {
-      machine: this.machine,
-      user: this.user,
-      branch: this.branch
-    };
-  }
-}
-
-interface TestCaseRunJSON {
-  result: string;
-  environment: {
-    machine: string;
-    user: string;
-    branch: string;
-  };
-  duration: {
-    start: string;
-    end: string;
-  };
-}
-export class TestCaseRun {
-  constructor(
-    public testSuiteId: string,
-    public testCaseId: string,
-    public result: string,
-    public environment: TestEnvironment,
-    public duration: Duration
-  ) {}
-
-  static fromJSON(run: {
-    testSuiteId: string;
-    testCaseId: string;
-    result: string;
-    environment: TestEnvironmentJSON;
-    duration: DurationJSON;
-  }) {
-    return new TestCaseRun(
-      run.testSuiteId,
-      run.testCaseId,
-      run.result,
-      TestEnvironment.fromJSON(run.environment),
-      Duration.fromJSON(run.duration)
-    );
-  }
-
-  static fromJSONArray(
-    environment: TestEnvironment,
-    runs: { testSuiteId: string; testCaseId: string; result: string; duration: DurationJSON }[]
-  ): TestCaseRun[] {
-    return runs.map(
-      each =>
-        new TestCaseRun(each.testSuiteId, each.testCaseId, each.result, environment, Duration.fromJSON(each.duration))
-    );
-  }
-}
-type DurationJSON = {
-  start: string;
-  end: string;
-};
-export class Duration {
-  constructor(
-    public start: Date,
-    public end: Date
-  ) {}
-
-  static fromJSON(duration: DurationJSON): Duration {
-    return new Duration(new Date(Date.parse(duration.start)), new Date(Date.parse(duration.end)));
-  }
-
-  elapsedTime(): number {
-    return this.end.getTime() - this.start.getTime();
-  }
-
-  toJSON() {
-    return { start: this.start, end: this.end };
-  }
-}
-
-export class Triage {
-  constructor(
-    public runId: string,
-    public testSuiteId: string,
-    public testCaseId: string,
-    public note: TriageNote
-  ) {}
-
-  static fromJSON(value: {
-    runId: string;
-    testCaseId: string;
-    testSuiteId: string;
-    note: {
-      ticket: string;
-      insight: string;
-      by: string;
-      at: string;
-    };
-  }) {
-    return new Triage(value.runId, value.testCaseId, value.testSuiteId, {
-      ticket: value.note.ticket,
-      insight: value.note.insight,
-      by: value.note.by,
-      at: new Date(value.note.at)
-    });
-  }
-
-  toJSON() {
-    return {
-      runId: this.runId,
-      testCaseId: this.testCaseId,
-      testSuiteId: this.testSuiteId,
-      note: this.note
-    };
-  }
-}
-export type TestCaseState = {
-  testSuiteId: string;
-  testCaseId: string;
-  lastResult: string | null;
-  lastStartDate: Date | null;
-  lastElapsedTime: number | null;
-  lastTriageNote: {
-    ticket: string;
-    insight: string;
-    by: string;
-    at: Date;
-  } | null;
-};
-
-type TriageNote = {
-  ticket: string;
-  insight: string;
-  by: string;
-  at: Date;
-};
-
-class TestCaseStateImpl {
-  constructor(
-    public testSuiteId: string,
-    public testCaseId: string,
-    public lastResult: string | null,
-    public lastStartDate: Date | null,
-    public lastElapsedTime: number | null,
-    public lastTriageNote: TriageNote | null
-  ) {}
 }

@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { TestCaseState } from '@/models/test-manager';
+import { TestCaseState } from '@/models/test-entities';
 
 const StatusTable = () => {
   const [ testCases, setTestCases] = useState<TestCaseState[]>([]);
@@ -34,7 +34,7 @@ const StatusTable = () => {
             <tr key={index}>
               <td><code>{test.testSuiteId}</code></td>
               <td>
-                <Link href={`/test-case/${encodeURIComponent(test.testCaseId)}`}>
+                <Link href={`/test-case-history/${encodeURIComponent(test.testSuiteId)}/${encodeURIComponent(test.testCaseId)}`}>
                   <code>{test.testCaseId}</code>
                 </Link>
               </td>
