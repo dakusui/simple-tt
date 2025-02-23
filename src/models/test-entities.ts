@@ -188,24 +188,14 @@ export class Triage {
     };
   }
 }
-export function createTestCaseState(
-  testSuiteId: string,
-  testCaseId: string,
-  lastResult?: string,
-  lastStartDate?: Date,
-  lastElapsedTime?: number ,
-  lastTriageNote?: TriageNote
-): TestCaseState {
-  return new TestCaseStateImpl(testSuiteId, testCaseId, lastResult, lastStartDate, lastElapsedTime, lastTriageNote);
-}
 
-export type TestCaseState = {
+export type TestCaseRunWithTriage = {
   testSuiteId: string;
   testCaseId: string;
-  lastResult?: string;
-  lastStartDate?: Date;
-  lastElapsedTime?: number;
-  lastTriageNote?: {
+  result?: string;
+  startDate?: Date;
+  elapsedTime?: number;
+  triageNote?: {
     ticket: string;
     insight: string;
     by: string;
@@ -220,14 +210,24 @@ export type TriageNote = {
   at: Date;
 };
 
-class TestCaseStateImpl {
+export function createTestCaseRunWithTriage(
+  testSuiteId: string,
+  testCaseId: string,
+  lastResult?: string,
+  lastStartDate?: Date,
+  lastElapsedTime?: number ,
+  lastTriageNote?: TriageNote
+): TestCaseRunWithTriage {
+  return new TestCaseStateRunWithTriageImpl(testSuiteId, testCaseId, lastResult, lastStartDate, lastElapsedTime, lastTriageNote);
+}
+class TestCaseStateRunWithTriageImpl {
   constructor(
     public testSuiteId: string,
     public testCaseId: string,
-    public lastResult?: string,
-    public lastStartDate?: Date,
-    public lastElapsedTime?: number,
-    public lastTriageNote?: TriageNote 
+    public result?: string,
+    public startDate?: Date,
+    public elapsedTime?: number,
+    public triageNote?: TriageNote 
   ) {}
 }
 
@@ -237,7 +237,7 @@ export interface TestCaseRunJSON {
     machine: string;
     user: string;
     branch: string;
-  };
+  };                                                
   duration: {
     start: string;
     end: string;

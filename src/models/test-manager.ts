@@ -2,10 +2,10 @@ import { existsSync, readdirSync } from "fs";
 import path from "path";
 import superjson from "superjson";
 import {
-  createTestCaseState,
+  createTestCaseRunWithTriage,
   TestCaseRun,
   TestCaseRunJSON,
-  TestCaseState,
+  TestCaseRunWithTriage,
   TestEnvironment,
   TestRunSet,
   TestRunSetJSON,
@@ -15,25 +15,54 @@ import {
 } from "./test-entities";
 import { ensureDirectoryExists, readObjectFromJson, saveFile } from "./utils";
 
-// src/models/test-manager.ts
+class SequenceGenerator {
+  private atomicValue = new Int32Array(new SharedArrayBuffer(4));
+  constructor() {
+    Atomics.store(this.atomicValue, 0, 0);
+  }
 
+  next(): number {
+    return Atomics.add(this.atomicValue, 0, 1);
+  }
+}
 const testManagerDataDir: string = path.join(process.cwd(), "data", "test-manager");
+const sequenceGeneratorForRunId = new SequenceGenerator();
 
 export async function storeTestRun(jsonData: object): Promise<string> {
   const testManager: TestManager = new TestManager(testManagerDataDir);
   return testManager.storeRunSet(TestRunSet.fromJSON(jsonData as TestRunSetJSON));
 }
 
-export async function fetchRecentStatuses(): Promise<TestCaseState[]> {
+export async function fetchRecentStatuses(): Promise<TestCaseRunWithTriage[]> {
   // Mock data for testing, replace with actual data fetching logic
   const testManager: TestManager = new TestManager(testManagerDataDir);
-  return testManager.retrieveTestCaseStates();
+  return testManager.retrieveLatestTestCaseStates();
 }
 
-export async function fetchTestCaseRunHistory(testSuiteId: string, testCaseId: string): Promise<TestCaseRun[]> {
+export async function fetchTestCaseRunHistory(
+  testSuiteId: string,
+  testCaseId: string
+): Promise<[string, TestCaseRunWithTriage][]> {
   // Mock data for testing, replace with actual data fetching logic
   const testManager: TestManager = new TestManager(testManagerDataDir);
   return testManager.retrieveRunHistoryFor(testSuiteId, testCaseId);
+}
+
+export async function storeTriage(
+  runId: string,
+  testSuiteId: string,
+  testCaseId: string,
+  jsonData: object
+): Promise<TriageNote> {
+  const testManager: TestManager = new TestManager(testManagerDataDir);
+  const note: TriageNote = {
+    ticket: jsonData["ticket"],
+    insight: jsonData["insight"],
+    by: jsonData["by"],
+    at: new Date(Date.now())
+  } as TriageNote;
+  testManager.storeTriage(runId, testSuiteId, testCaseId, note);
+  return note;
 }
 
 /**
@@ -55,17 +84,36 @@ export async function fetchTestCaseRunHistory(testSuiteId: string, testCaseId: s
 export class TestManager {
   constructor(public baseDir: string) {}
 
-  retrieveTestCaseStates(): TestCaseState[] {
+  retrieveLatestTestCaseStates(): TestCaseRunWithTriage[] {
     return this.testSuites()
       .flatMap(testSuiteId => {
         return this.testCasesFor(testSuiteId).map(testCaseId => [testSuiteId, testCaseId]);
       })
       .map(v => {
-        return this.retrieveTestCaseState(v[0], v[1]);
+        return this.retrieveLastTestCaseRunWithLastTriage(v[0], v[1]);
       });
   }
 
-  retrieveTestCaseState(testSuiteId: string, testCaseId: string): TestCaseState {
+  retrieveRunHistoryFor(testSuiteId: string, testCaseId: string): [string, TestCaseRunWithTriage][] {
+    return this.runs()
+      .filter(runId => this.existsTestCaseRun(runId, testSuiteId, testCaseId))
+      .map(runId => {
+        const testCaseRun: TestCaseRun = this.retrieveTestCaseRun(runId, testSuiteId, testCaseId);
+        return [
+          runId,
+          createTestCaseRunWithTriage(
+            testCaseRun.testSuiteId,
+            testCaseRun.testCaseId,
+            testCaseRun.result,
+            testCaseRun.duration.start,
+            testCaseRun.duration.elapsedTime(),
+            this.retrieveTriageFor(runId, testSuiteId, testCaseId)?.note
+          )
+        ];
+      });
+  }
+
+  retrieveLastTestCaseRunWithLastTriage(testSuiteId: string, testCaseId: string): TestCaseRunWithTriage {
     const lastRun: TestCaseRun | undefined = this.retrieveLastRunFor(testSuiteId, testCaseId) ?? undefined;
     const lastResult: string | undefined = (lastRun?.result as string) ?? undefined;
     const lastStartDate: Date | undefined = (lastRun?.duration.start as Date) ?? undefined;
@@ -77,7 +125,14 @@ export class TestManager {
     )
       ? this.retrieveLastTriageFor(testSuiteId, testCaseId)?.note
       : undefined;
-    return createTestCaseState(testSuiteId, testCaseId, lastResult, lastStartDate, lastElapsedTime, lastTriageNote);
+    return createTestCaseRunWithTriage(
+      testSuiteId,
+      testCaseId,
+      lastResult,
+      lastStartDate,
+      lastElapsedTime,
+      lastTriageNote
+    );
   }
 
   retrieveLastRunFor(testSuiteId: string, testCaseId: string): TestCaseRun | null {
@@ -92,10 +147,9 @@ export class TestManager {
     return null;
   }
 
-  retrieveRunHistoryFor(testSuiteId: string, testCaseId: string): TestCaseRun[] {
-    return this.runs()
-      .filter(runId => this.existsTestCaseRun(runId, testSuiteId, testCaseId))
-      .map(runId => this.retrieveTestCaseRun(runId, testSuiteId, testCaseId));
+  retrieveTriageFor(runId: string, testSuiteId: string, testCaseId: string): Triage | null {
+    if (this.existsTriage(runId, testSuiteId, testCaseId)) return this.retrieveTriage(runId, testSuiteId, testCaseId);
+    return null;
   }
 
   storeTestSuite(testSuite: TestSuite): string[] {
@@ -144,7 +198,7 @@ export class TestManager {
     testSuiteId: string,
     testCaseId: string,
     note: { ticket: string; insight: string; by: string; at: Date }
-  ) {
+  ): void {
     const triageFilePath = this.triageFilePath(runId, testSuiteId, testCaseId);
     ensureDirectoryExists(path.dirname(triageFilePath));
     saveFile(triageFilePath, superjson.stringify(note));
@@ -247,9 +301,10 @@ export class TestManager {
     return path.join(this.runDirFor(runId), path.join("testSuite-" + testSuiteId, "testCase-" + testCaseId + ".json"));
   }
 
-  private generateRunId() {
-    console.log("Generating run id:" + new Date(Date.now()).toISOString());
-    return new Date(Date.now()).toISOString().replaceAll(":", "-");
+  private generateRunId(): string {
+    const ret = sequenceGeneratorForRunId.next().toString().padStart(6, "0");
+    console.log("Generating run id:<" + ret + ">");
+    return ret;
   }
 
   private runDirFor(runId: string) {

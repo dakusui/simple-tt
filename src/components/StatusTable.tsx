@@ -3,10 +3,10 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { TestCaseState } from '@/models/test-entities';
+import { TestCaseRunWithTriage } from '@/models/test-entities';
 
 const StatusTable = () => {
-  const [ testCases, setTestCases] = useState<TestCaseState[]>([]);
+  const [ testCases, setTestCases] = useState<TestCaseRunWithTriage[]>([]);
   const [message, setMessage] = useState('');
 
   useEffect(() => {
@@ -38,13 +38,13 @@ const StatusTable = () => {
                   <code>{test.testCaseId}</code>
                 </Link>
               </td>
-              <td style={{ color: test.lastResult === 'FAIL' ? 'red' : 'black' }}>
-                {test.lastResult}
+              <td style={{ color: test.result === 'FAIL' ? 'red' : 'black' }}>
+                {test.result}
               </td>
               <td>
-                {test.lastTriageNote?.insight || 'N/A'}
+                {test.triageNote?.insight || 'N/A'}
               </td>
-              <td>{test.lastStartDate ? test.lastStartDate.toString() : ""} {test.lastElapsedTime ? ("(" + (test.lastElapsedTime /1000) + "[s])") : ""}</td>
+              <td>{test.startDate ? test.startDate.toString() : ""} {test.elapsedTime ? ("(" + (test.elapsedTime /1000) + "[s])") : ""}</td>
             </tr>
           ))}
         </tbody>

@@ -1,9 +1,9 @@
 
 {
   "environment": {
-    "machine": "$(hostname)",
-    "user": "$(whoami)",
-    "branch": "$(git branch | grep '*'| cut -f 2 -d ' '"
+    "machine": "calligraphos",
+    "user": "risa",
+    "branch": "test-branch"
   },
   "runs": [
     {
