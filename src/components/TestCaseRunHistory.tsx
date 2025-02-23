@@ -2,24 +2,19 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { TestCaseRunWithTriage } from "@/models/test-entities";
 
-interface TestRun {
-  fileName: string;
-  testSuite: string;
-  testResult: string;
-  executionTime: string;
-  manualAnalysis?: string;
-}
-
-export default function TestCaseRunHistory({testSuiteId, testCaseId}: {testSuiteId: string, testCaseId: string}) {
-  const [runs, setRuns] = useState<TestRun[]>([]);
+export default function TestCaseRunHistory({ testSuiteId, testCaseId }: { testSuiteId: string; testCaseId: string }) {
+  const [runs, setRuns] = useState<[string, TestCaseRunWithTriage][]>([]);
   const [message, setMessage] = useState("");
 
   useEffect(() => {
     console.log("Fetching test runs for", testSuiteId, testCaseId);
     if (!testSuiteId || !testCaseId) return;
 
-    fetch(`/api/test-case-history?testSuiteId=${encodeURIComponent(testSuiteId)}&testCaseId=${encodeURIComponent(testCaseId)}`)
+    fetch(
+      `/api/test-case-history?testSuiteId=${encodeURIComponent(testSuiteId)}&testCaseId=${encodeURIComponent(testCaseId)}`
+    )
       .then(res => res.json())
       .then(data => {
         if (data.error) {
@@ -32,43 +27,45 @@ export default function TestCaseRunHistory({testSuiteId, testCaseId}: {testSuite
   }, [testSuiteId, testCaseId]);
 
   return (
-    <div style={{ maxWidth: "800px", margin: "auto", padding: "20px" }}>
-      <h1>Test Runs for: {testCaseId}</h1>
+    <div style={{ margin: "auto", padding: "20px" }}>
+      <h1>
+        {testSuiteId.replace(/.*\./, "")}: {testCaseId.replace(/[$|_]/, " ")}
+      </h1>
       {message && <p>{message}</p>}
       <table border={1} cellPadding="5">
         <thead>
           <tr>
-            <th>Test Suite</th>
+            <th>runId</th>
             <th>Result</th>
             <th>Execution Time</th>
             <th>File Name</th>
-            <th>Manual Analysis</th>
+            <th>Triage</th>
           </tr>
         </thead>
         <tbody>
           {runs.map((run, index) => (
             <tr key={index}>
-              <td>{run.testSuite}</td>
-              <td style={{ color: run.testResult === "FAIL" ? "red" : "black" }}>
-                {run.testResult}
-              </td>
-              <td>{new Date(run.executionTime).toLocaleString()}</td>
-              <td>{run.fileName}</td>
+              <td>{run[0]}</td>
+              <td style={{ color: run[1].result === "FAIL" ? "red" : "black" }}>{run[1].result}</td>
+              <td>{new Date(run[1].startDate ?? 0).toLocaleString()}</td>
+              <td>{run[1].triageNote ? run[1].triageNote.ticket : "-"}</td>
               <td>
-                {run.manualAnalysis ? (
+                {run[1].triageNote ? (
                   <>
-                    <span>{run.manualAnalysis}</span> <br />
-                    <Link legacyBehavior href={`/edit-analysis?fileName=${encodeURIComponent(run.fileName)}&testCase=${encodeURIComponent(testCaseId)}`}>
-                      <a style={{ color: "blue", textDecoration: "underline" }}>
-                        Edit Manual Analysis
-                      </a>
+                    <span>{run[1].triageNote.insight}</span> <br />
+                    <Link
+                      legacyBehavior
+                      href={`/edit-analysis?runId=${run[0]}&testSuiteId=${encodeURIComponent(testSuiteId)}&testCaseId=${encodeURIComponent(testCaseId)}`}
+                    >
+                      <a style={{ color: "blue", textDecoration: "underline" }}>Edit Diagnosis</a>
                     </Link>
                   </>
                 ) : (
-                  <Link legacyBehavior href={`/analyze?fileName=${encodeURIComponent(run.fileName)}&testCase=${encodeURIComponent(testCaseId)}`}>
-                    <a style={{ color: "blue", textDecoration: "underline" }}>
-                      Add Manual Analysis
-                    </a>
+                  <Link
+                    legacyBehavior
+                    href={`/analyze?fileName=${encodeURIComponent(run[0])}&testSuiteId=${encodeURIComponent(testSuiteId)}&testCase=${encodeURIComponent(testCaseId)}`}
+                  >
+                    <a style={{ color: "blue", textDecoration: "underline" }}>Triage</a>
                   </Link>
                 )}
               </td>

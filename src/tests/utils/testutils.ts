@@ -1,3 +1,4 @@
+
 import { existsSync, rmSync } from "fs";
 import { TestRunSet, TestSuite } from "../../models/test-entities";
 import { TestManager  } from "../../models/test-manager";
@@ -7,6 +8,18 @@ export function ensureSessionDirectoryIsAbsent() : string {
   const sessionId = Math.random().toString(36).substring(7);
   if (existsSync("/tmp/test-manager/" + sessionId)) rmSync("/tmp/test-manager/" + sessionId, { recursive: true });
   return sessionId;
+}
+
+export function waitFor(p: () => boolean, timeout: number = 5000, interval: number = 200): void {
+  const start = Date.now();
+  while (Date.now() - start < timeout) {
+    if (p()) return;
+    sleep(interval);
+  }
+  throw new Error("Timeout");
+}
+async function sleep(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 export function createTestManager(sessionId: string): TestManager {
@@ -30,6 +43,10 @@ export function prepareTestManager() {
 
 export function primaryRunSet(): TestRunSet {
   return TestRunSet.fromJSON(readJsonSync("src/tests/resources/v2/run-1.json"));
+}
+
+export function secondaryRunSet(): TestRunSet {
+  return TestRunSet.fromJSON(readJsonSync("src/tests/resources/v2/run-2.json"));
 }
 
 export function existingRunId(testManager: TestManager): string {

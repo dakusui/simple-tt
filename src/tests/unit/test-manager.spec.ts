@@ -1,35 +1,34 @@
 import { expect } from "vitest";
-import { TestCaseState } from "../../models/test-entities";
+import { TestCaseRunWithTriage } from "../../models/test-entities";
 import { TestManager } from "../../models/test-manager";
 import { Given, Then, When } from "../utils/gwt";
-import { createTestManager, ensureSessionDirectoryIsAbsent, primaryRunSet, primaryTestSuite } from "../utils/testutils";
+import {
+  createTestManager,
+  ensureSessionDirectoryIsAbsent,
+  primaryRunSet,
+  primaryTestSuite,
+  secondaryRunSet,
+} from "../utils/testutils";
 
 Given<void, TestManager>()(
   "new TestManager",
   () => {
-    console.log("GIVEN: Creating TestManager");
     return createTestManager(ensureSessionDirectoryIsAbsent());
   },
   When<TestManager, TestManager>(
     "stores TestSuite",
     testManager => {
-      console.log("WHEN: Storing TestSuite");
-      const testCaseFiles: string[] = testManager.storeTestSuite(primaryTestSuite());
-      console.log("WHEN: TestCaseFiles: ", testCaseFiles);
+      testManager.storeTestSuite(primaryTestSuite());
       return testManager;
     },
     Then<TestManager>("TestManager returns non-empty for 'testSuite()'", testManager => {
-      console.log("THEN: Checking test suites");
-      console.log("THEN: Test suites: ", testManager.testSuites());
       expect(testManager.testSuites().length).toBeGreaterThan(0);
-      console.log("THEN: Test suites: ", testManager.testSuites());
     })
   ),
   When<TestManager, TestManager>(
     "stores TestSuite (2)",
     testManager => {
-      const testCaseFiles: string[] = testManager.storeTestSuite(primaryTestSuite());
-      console.log("WHEN: TestCaseFiles: ", testCaseFiles);
+      testManager.storeTestSuite(primaryTestSuite());
       return testManager;
     },
     Then<TestManager>("TestManager returns non-empty for 'testSuite()'", testManager => {
@@ -100,18 +99,18 @@ Given<void, TestManager>()(
     testManager.storeTestSuite(primaryTestSuite());
     return testManager;
   },
-  When<TestManager, TestCaseState[]>(
+  When<TestManager, TestCaseRunWithTriage[]>(
     "fetchTestCaseState is called over (testSuiteId, testCaseId)",
     testManager => {
-      const ret: TestCaseState[] = [];
+      const ret: TestCaseRunWithTriage[] = [];
       for (const eachTestSuiteId of testManager.testSuites()) {
         for (const eachTestCaseId of testManager.testCasesFor(eachTestSuiteId)) {
-          ret.push(testManager.retrieveTestCaseState(eachTestSuiteId, eachTestCaseId));
+          ret.push(testManager.retrieveLastTestCaseRunWithLastTriage(eachTestSuiteId, eachTestCaseId));
         }
       }
       return ret;
     },
-    Then<TestCaseState[]>("All test case states are returned.", testCaseStates => {
+    Then<TestCaseRunWithTriage[]>("All test case states are returned.", testCaseStates => {
       expect(testCaseStates.length).greaterThan(0);
     })
   ),
@@ -151,12 +150,12 @@ Given<void, TestManager>()(
     testManager.storeRunSet(primaryRunSet());
     return testManager;
   },
-  When<TestManager, TestCaseState[]>(
+  When<TestManager, TestCaseRunWithTriage[]>(
     "fetchTestCaseState is called over (testSuiteId, testCaseId)",
     testManager => {
-      return testManager.retrieveTestCaseStates();
+      return testManager.retrieveLatestTestCaseStates();
     },
-    Then<TestCaseState[]>("All test case states are returned.", testCaseStates => {
+    Then<TestCaseRunWithTriage[]>("All test case states are returned.", testCaseStates => {
       expect(testCaseStates.length).greaterThan(0);
     })
   )
@@ -187,8 +186,8 @@ Given<void, [TestManager, string]>()(
       return testManager;
     },
     Then<TestManager>("testManager can run fetchTestCaseStates().", testManager => {
-      expect(testManager.retrieveTestCaseStates().length).greaterThan(0);
-      expect(testManager.retrieveTestCaseStates()[0]).toBeTruthy();
+      expect(testManager.retrieveLatestTestCaseStates().length).greaterThan(0);
+      expect(testManager.retrieveLatestTestCaseStates()[0]).toBeTruthy();
     })
   )
 );
@@ -209,20 +208,88 @@ Given<void, [TestManager, string, string]>()(
     });
     return [testManager, testSuiteId, testCaseId];
   },
-  When<[TestManager, string, string], TestCaseState>(
+  When<[TestManager, string, string], TestCaseRunWithTriage>(
     "fetchTestCaseState(...) is called",
     context => {
       const [testManager, testSuiteId, testCaseId] = context;
-      return testManager.retrieveTestCaseState(testSuiteId, testCaseId);
+      return testManager.retrieveLastTestCaseRunWithLastTriage(testSuiteId, testCaseId);
     },
-    Then<TestCaseState>("returned TestCaseState with a triage note", testCaseState => {
+    Then<TestCaseRunWithTriage>("returned TestCaseState with a triage note", testCaseState => {
       expect(testCaseState).toBeTruthy();
-      expect(testCaseState.lastResult).toBeTruthy();
-      expect(testCaseState.lastTriageNote).toMatchObject({
+      expect(testCaseState.result).toBeTruthy();
+      expect(testCaseState.triageNote).toMatchObject({
         ticket: "TT-12345",
         insight: "This is a test insight.",
         at: expect.any(Date)
       });
+    })
+  )
+);
+Given<void, [TestManager, string, string]>()(
+  "TestManager, which stores two run-sets",
+  () => {
+    const testManager: TestManager = createTestManager(ensureSessionDirectoryIsAbsent());
+    testManager.storeTestSuite(primaryTestSuite());
+    testManager.storeRunSet(primaryRunSet());
+    testManager.storeRunSet(secondaryRunSet());
+    const testSuiteId = "com.github.dakusui.sample_tt.example.FirstTest";
+    const testCaseId = "whenPerformDailyOperation_thenFinishesSuccessfully";
+    return [testManager, testSuiteId, testCaseId];
+  },
+  When<[TestManager, string, string], [string, TestCaseRunWithTriage][]>(
+    "retrieveRunHistoryFor(...) is called",
+    context => {
+      const [testManager, testSuiteId, testCaseId] = context;
+      return testManager.retrieveRunHistoryFor(testSuiteId, testCaseId);
+    },
+    Then<[string, TestCaseRunWithTriage][]>("returned TestCaseState with a triage note", testCaseRunHistory => {
+      const [runId0, testCaseState0] = testCaseRunHistory[0];
+      const [runId1, testCaseState1] = testCaseRunHistory[1];
+      expect(testCaseRunHistory.length).toBe(2);
+      expect(runId0).toBeTruthy();
+      expect(testCaseState0).toBeTruthy();
+      expect(runId1).toBeTruthy();
+      expect(testCaseState1).toBeTruthy();
+    })
+  )
+);
+Given<void, [TestManager, string, string]>()(
+  "TestManager, which stores two run-sets and a triage for one of the test case runs",
+  () => {
+    const testManager: TestManager = createTestManager(ensureSessionDirectoryIsAbsent());
+    testManager.storeTestSuite(primaryTestSuite());
+    testManager.storeRunSet(primaryRunSet());
+    testManager.storeRunSet(secondaryRunSet());
+
+    const runId = testManager.runs()[0];
+    const testSuiteId = "com.github.dakusui.sample_tt.example.FirstTest";
+    const testCaseId = "whenPerformDailyOperation_thenFinishesSuccessfully";
+    
+    testManager.storeTriage(runId, testSuiteId, testCaseId, {
+      ticket: "TT-12345",
+      insight: "This is a test insight.",
+      at: new Date(),
+      by: "testUser"
+    });
+    
+    return [testManager, testSuiteId, testCaseId];
+  },
+  When<[TestManager, string, string], [string, TestCaseRunWithTriage][]>(
+    "retrieveRunHistoryFor(...) is called",
+    context => {
+      const [testManager, testSuiteId, testCaseId] = context;
+      return testManager.retrieveRunHistoryFor(testSuiteId, testCaseId);
+    },
+    Then<[string, TestCaseRunWithTriage][]>("returned TestCaseRun[] with a triage note", testCaseRunHistory => {
+      const [runId0, testCaseState0] = testCaseRunHistory[0];
+      const [runId1, testCaseState1] = testCaseRunHistory[1];
+      expect(testCaseRunHistory.length).toBe(2);
+      expect(runId0).toBeTruthy();
+      expect(testCaseState0).toBeTruthy();
+      expect(testCaseState0.triageNote).toBeTruthy();
+      expect(runId1).toBeTruthy();
+      expect(testCaseState1).toBeTruthy();
+      expect(testCaseState1.triageNote).toBeFalsy();
     })
   )
 );
