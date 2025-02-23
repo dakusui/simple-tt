@@ -55,7 +55,7 @@ export default function TestCaseRunHistory({ testSuiteId, testCaseId }: { testSu
                     <span>{run[1].triageNote.insight}</span> <br />
                     <Link
                       legacyBehavior
-                      href={`/edit-analysis?runId=${run[0]}&testSuiteId=${encodeURIComponent(testSuiteId)}&testCaseId=${encodeURIComponent(testCaseId)}`}
+                      href={`/triage/${encodeURIComponent(run[0])}/${encodeURIComponent(testSuiteId)}/${encodeURIComponent(testCaseId)}`}
                     >
                       <a style={{ color: "blue", textDecoration: "underline" }}>Edit Diagnosis</a>
                     </Link>
@@ -63,7 +63,7 @@ export default function TestCaseRunHistory({ testSuiteId, testCaseId }: { testSu
                 ) : (
                   <Link
                     legacyBehavior
-                    href={`/analyze?fileName=${encodeURIComponent(run[0])}&testSuiteId=${encodeURIComponent(testSuiteId)}&testCase=${encodeURIComponent(testCaseId)}`}
+                    href={`/triage/${encodeURIComponent(run[0])}/${encodeURIComponent(testSuiteId)}/${encodeURIComponent(testCaseId)}`}
                   >
                     <a style={{ color: "blue", textDecoration: "underline" }}>Triage</a>
                   </Link>

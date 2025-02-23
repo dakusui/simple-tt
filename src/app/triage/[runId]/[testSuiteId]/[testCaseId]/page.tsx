@@ -1,4 +1,4 @@
-import Triage from "@/components/EditTriage";
+import EditTriage from "@/components/EditTriage";
 
 export default async function TestCaseRunsPage({
   params,
@@ -7,6 +7,6 @@ export default async function TestCaseRunsPage({
 }) {
   const resolvedParams = await params;
   return (
-    <EditTriage runId={resolvedParams.runId} testSuiteId={resolvedParams.testSuiteId}  testCaseId={resolvedParams.testCaseId} />
+    <EditTriage runId={resolvedParams.runId} testSuiteId={resolvedParams.testSuiteId} testCaseId={resolvedParams.testCaseId} />
   );
 }

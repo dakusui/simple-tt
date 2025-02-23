@@ -1,25 +1,24 @@
-import { useState, useEffect } from "react";
-import { useRouter } from "next/router";
+'use client'
 
-export default function EditTriage() {
-  const router = useRouter();
-  const { runId, testSuiteId, testCaseId } = router.query;
+import { useState, useEffect } from "react";
+
+export default function EditTriage({runId, testSuiteId, testCaseId}: {runId: string, testSuiteId: string, testCaseId: string}) {
   const [triage, setTriage] = useState("");
   const [message, setMessage] = useState("");
 
   // Load the current triage (analysis) when fileName and testCase are available.
   useEffect(() => {
-    if (fileName && testCase) {
+    if (runId && testSuiteId && testCaseId) {
       fetch(
-        `/api/triage?fileName=${encodeURIComponent(
-          fileName as string
-        )}&testCase=${encodeURIComponent(testCase as string)}`
+        `/api/triage?runId=${encodeURIComponent(
+          runId as string
+        )}&testSuiteId=${encodeURIComponent(testSuiteId as string)}&testCaseId=${encodeURIComponent(testCaseId as string)}`
       )
-        .then((res) => res.json())
-        .then((data) => setTriage(data.analysis || ""))
+        .then(res => res.json())
+        .then(data => setTriage(data.analysis || ""))
         .catch(() => setMessage("Failed to load triage"));
     }
-  }, [fileName, testCase]);
+  }, [runId, testSuiteId, testCaseId]);
 
   // Handle submitting the updated triage.
   const handleSubmit = async () => {
@@ -28,10 +27,18 @@ export default function EditTriage() {
       return;
     }
 
-    const response = await fetch("/api/store-analysis", {
-      method: "POST",
+    const params = {
+        runId: runId,
+        testSuiteId: testSuiteId,
+        testCaseId: testCaseId,
+        ticket: "TICKET-123",
+        insight: triage,
+        by: "me"
+    }
+    const response = await fetch("/api/triage", {
+      method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ fileName, testCase, analysis: triage }),
+      body: JSON.stringify(params)
     });
 
     const result = await response.json();
@@ -43,17 +50,12 @@ export default function EditTriage() {
   };
 
   return (
-    <div style={{ maxWidth: "600px", margin: "auto", padding: "20px" }}>
+    <div style={{margin: "auto", padding: "20px" }}>
       <h1>Edit Triage</h1>
       <p>
-        <strong>Test Case:</strong> {testCase}
+        {testSuiteId.replace(/.*\./, "")}: {testCaseId.replace(/[$|_]/, " ")}   
       </p>
-      <textarea
-        value={triage}
-        onChange={(e) => setTriage(e.target.value)}
-        rows={4}
-        cols={50}
-      />
+      <textarea value={triage} onChange={e => setTriage(e.target.value)} rows={4} cols={50} />
       <br />
       <button onClick={handleSubmit}>Save Changes</button>
       <p>{message}</p>

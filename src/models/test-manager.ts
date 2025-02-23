@@ -65,6 +65,13 @@ export async function storeTriage(
   return note;
 }
 
+export async function fetchTriage(runId: string, testSuiteId: string, testCaseId: string): Promise<TriageNote|null> {
+  const testManager: TestManager = new TestManager(testManagerDataDir);
+  if (testManager.existsTriage(runId, testSuiteId, testCaseId)) 
+    return testManager.retrieveTriage(runId, testSuiteId, testCaseId).note;
+  return null;
+}
+
 /**
  * baseDir/
  *   testSuites/                            testSuitesDie()
