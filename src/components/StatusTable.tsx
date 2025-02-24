@@ -2,10 +2,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { TestCaseRunWithTriage } from "@/models/test-entities";
 
-export default function StatusTable({onSelect}: {onSelect: (testCase: TestCaseRunWithTriage) => void}) {
+export default function StatusTable({ onSelect }: { onSelect: (testCase: TestCaseRunWithTriage) => void }) {
   const [testCases, setTestCases] = useState<TestCaseRunWithTriage[]>([]);
   const [message, setMessage] = useState("");
 
@@ -32,17 +31,19 @@ export default function StatusTable({onSelect}: {onSelect: (testCase: TestCaseRu
         </thead>
         <tbody>
           {testCases.map((test, index) => (
-            <tr key={index}>
-              <td onClick={() => onSelect(test)}>{index}</td>
+            <tr
+              key={index}
+              onClick={() => onSelect(test)}
+              style={{ cursor: "pointer", transition: "background-color 0.3s" }}
+              onMouseOver={e => (e.currentTarget.style.backgroundColor = "#f2f2f2")}
+              onMouseOut={e => (e.currentTarget.style.backgroundColor = "transparent")}
+            >
+              <td>{index}</td>
               <td>
                 <code>{test.testSuiteId}</code>
               </td>
               <td>
-                <Link
-                  href={`/test-case-history/${encodeURIComponent(test.testSuiteId)}/${encodeURIComponent(test.testCaseId)}`}
-                >
-                  <code>{test.testCaseId}</code>
-                </Link>
+                <code>{test.testCaseId}</code>
               </td>
               <td style={{ color: test.result === "FAIL" ? "red" : "black" }}>{test.result}</td>
               <td>{test.triageNote?.insight || "N/A"}</td>

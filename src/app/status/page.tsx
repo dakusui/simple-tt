@@ -1,10 +1,12 @@
-'use client'
+"use client"
 import StatusTable from "@/components/StatusTable";
 import { TestCaseRunWithTriage } from "@/models/test-entities";
+import { useRouter } from "next/navigation";
 
 export default function StatusPage() {
+  const router = useRouter();
   const handleSelect = (testCase: TestCaseRunWithTriage) => {
-    console.log("specifiedTestCase:", testCase.testSuiteId, testCase.testCaseId);
+    router.push(`/test-case-history/${encodeURIComponent(testCase.testSuiteId)}/${encodeURIComponent(testCase.testCaseId)}`);
   };
   return (
     <div>
