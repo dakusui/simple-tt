@@ -1,19 +1,19 @@
 // src/components/StatusTable.tsx
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { TestCaseRunWithTriage } from '@/models/test-entities';
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { TestCaseRunWithTriage } from "@/models/test-entities";
 
-const StatusTable = () => {
-  const [ testCases, setTestCases] = useState<TestCaseRunWithTriage[]>([]);
-  const [message, setMessage] = useState('');
+export default function StatusTable({onSelect}: {onSelect: (testCase: TestCaseRunWithTriage) => void}) {
+  const [testCases, setTestCases] = useState<TestCaseRunWithTriage[]>([]);
+  const [message, setMessage] = useState("");
 
   useEffect(() => {
-    fetch('/api/recent-status')
-      .then((res) => res.json())
-      .then((data) => setTestCases(Array.isArray(data) ? data : []))
-      .catch(() => setMessage('Failed to load test case statuses'));
+    fetch("/api/recent-status")
+      .then(res => res.json())
+      .then(data => setTestCases(Array.isArray(data) ? data : []))
+      .catch(() => setMessage("Failed to load test case statuses"));
   }, []);
 
   return (
@@ -22,6 +22,7 @@ const StatusTable = () => {
       <table border={1} cellPadding={5}>
         <thead>
           <tr>
+            <th>#</th>
             <th>Test Suite</th>
             <th>Test Case</th>
             <th>Result</th>
@@ -32,25 +33,27 @@ const StatusTable = () => {
         <tbody>
           {testCases.map((test, index) => (
             <tr key={index}>
-              <td><code>{test.testSuiteId}</code></td>
+              <td onClick={() => onSelect(test)}>{index}</td>
               <td>
-                <Link href={`/test-case-history/${encodeURIComponent(test.testSuiteId)}/${encodeURIComponent(test.testCaseId)}`}>
+                <code>{test.testSuiteId}</code>
+              </td>
+              <td>
+                <Link
+                  href={`/test-case-history/${encodeURIComponent(test.testSuiteId)}/${encodeURIComponent(test.testCaseId)}`}
+                >
                   <code>{test.testCaseId}</code>
                 </Link>
               </td>
-              <td style={{ color: test.result === 'FAIL' ? 'red' : 'black' }}>
-                {test.result}
-              </td>
+              <td style={{ color: test.result === "FAIL" ? "red" : "black" }}>{test.result}</td>
+              <td>{test.triageNote?.insight || "N/A"}</td>
               <td>
-                {test.triageNote?.insight || 'N/A'}
+                {test.startDate ? test.startDate.toString() : ""}{" "}
+                {test.elapsedTime ? "(" + test.elapsedTime / 1000 + "[s])" : ""}
               </td>
-              <td>{test.startDate ? test.startDate.toString() : ""} {test.elapsedTime ? ("(" + (test.elapsedTime /1000) + "[s])") : ""}</td>
             </tr>
           ))}
         </tbody>
       </table>
     </div>
   );
-};
-
-export default StatusTable;
+}
