@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import Link from "next/link";
 import { TestCaseRunWithTriage } from "@/models/test-entities";
+import { useEffect, useState } from "react";
 
 export default function TestCaseRunHistory({ testSuiteId, testCaseId, onSelect }: { testSuiteId: string; testCaseId: string, onSelect: (runId: string, testCase: TestCaseRunWithTriage) => void}) {
   const [runs, setRuns] = useState<[string, TestCaseRunWithTriage][]>([]);
@@ -53,21 +52,9 @@ export default function TestCaseRunHistory({ testSuiteId, testCaseId, onSelect }
                 {run[1].triageNote ? (
                   <>
                     <span>{run[1].triageNote.insight}</span> <br />
-                    <Link
-                      legacyBehavior
-                      href={`/triage/${encodeURIComponent(run[0])}/${encodeURIComponent(testSuiteId)}/${encodeURIComponent(testCaseId)}`}
-                    >
-                      <a style={{ color: "blue", textDecoration: "underline" }}>Edit Diagnosis</a>
-                    </Link>
                   </>
                 ) : (
-                  <Link
-                    legacyBehavior
-                    href={`/triage/${encodeURIComponent(run[0])}/${encodeURIComponent(testSuiteId)}/${encodeURIComponent(testCaseId)}`}
-                  >
-                    <a style={{ color: "blue", textDecoration: "underline" }}>Triage</a>
-                  </Link>
-                )}
+                "-")}
               </td>
             </tr>
           ))}
