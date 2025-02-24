@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { TestCaseRunWithTriage } from "@/models/test-entities";
 
-export default function TestCaseRunHistory({ testSuiteId, testCaseId }: { testSuiteId: string; testCaseId: string }) {
+export default function TestCaseRunHistory({ testSuiteId, testCaseId, onSelect }: { testSuiteId: string; testCaseId: string, onSelect: (runId: string, testCase: TestCaseRunWithTriage) => void}) {
   const [runs, setRuns] = useState<[string, TestCaseRunWithTriage][]>([]);
   const [message, setMessage] = useState("");
 
@@ -44,7 +44,7 @@ export default function TestCaseRunHistory({ testSuiteId, testCaseId }: { testSu
         </thead>
         <tbody>
           {runs.map((run, index) => (
-            <tr key={index}>
+            <tr key={index} onClick={() => onSelect(run[0], run[1])} style={{ cursor: "pointer", transition: "background-color 0.3s" }}>
               <td>{run[0]}</td>
               <td style={{ color: run[1].result === "FAIL" ? "red" : "black" }}>{run[1].result}</td>
               <td>{new Date(run[1].startDate ?? 0).toLocaleString()}</td>
