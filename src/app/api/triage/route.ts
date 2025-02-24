@@ -1,15 +1,15 @@
 import { TriageNote } from "@/models/test-entities";
 import { fetchTriage, storeTriage } from "@/models/test-manager"; // Use server-side logic
 import { NextResponse } from "next/server";
-import SuperJSON from "superjson";
 
 export async function PUT(req: Request) {
   try {
     const body = await req.json();
     const { runId, testSuiteId, testCaseId, insight, by, ticket } = body;
 
-    const triageNote = await storeTriage(runId, testSuiteId, testCaseId, { ticket: ticket, insight: insight, by: by });
-    return NextResponse.json({ runs: triageNote });
+    const triageNote : TriageNote = await storeTriage(runId, testSuiteId, testCaseId, { ticket: ticket, insight: insight, by: by });
+    console.log("triageNote", triageNote);
+    return NextResponse.json(triageNote);
   } catch (error) {
     if (error instanceof KnownError) {
       return NextResponse.json({ error: error.message }, { status: error.statusCode() });
@@ -23,8 +23,9 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const [runId, testSuiteId, testCaseId] = requireSearchParamsParametersForGetAreSet(searchParams);
     const triageNote: TriageNote | undefined = (await fetchTriage(runId, testSuiteId, testCaseId)) ?? undefined;
-    if (triageNote) return NextResponse.json({ triageNote: SuperJSON.stringify(triageNote) });
-    return NextResponse.json({});
+    console.log("GET: triageNote", triageNote);
+    if (triageNote) return NextResponse.json(triageNote);
+    return NextResponse.json(triageNote);
   } catch (error) {
     if (error instanceof KnownError) {
       return NextResponse.json({ error: error.message }, { status: error.statusCode() });

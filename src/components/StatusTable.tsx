@@ -40,7 +40,7 @@ export default function StatusTable({ onSelect }: { onSelect: (testCase: TestCas
             >
               <td>{index}</td>
               <td>
-                <code>{test.testSuiteId}</code>
+                <code>{test.testSuiteId.replace(/.*\./, '')}</code>
               </td>
               <td>
                 <code>{test.testCaseId}</code>
