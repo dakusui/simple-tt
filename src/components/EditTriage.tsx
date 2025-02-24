@@ -1,40 +1,55 @@
-'use client'
+"use client";
 
 import { useState, useEffect } from "react";
+import { TriageNote } from "@/models/test-entities";
 
-export default function EditTriage({runId, testSuiteId, testCaseId}: {runId: string, testSuiteId: string, testCaseId: string}) {
-  const [triage, setTriage] = useState("");
+export default function EditTriage({
+  runId,
+  testSuiteId,
+  testCaseId
+}: {
+  runId: string;
+  testSuiteId: string;
+  testCaseId: string;
+}) {
+  const [triage, setTriage] = useState<TriageNote | undefined>(undefined);
   const [message, setMessage] = useState("");
 
   // Load the current triage (analysis) when fileName and testCase are available.
   useEffect(() => {
     if (runId && testSuiteId && testCaseId) {
       fetch(
-        `/api/triage?runId=${encodeURIComponent(
-          runId as string
-        )}&testSuiteId=${encodeURIComponent(testSuiteId as string)}&testCaseId=${encodeURIComponent(testCaseId as string)}`
+        `/api/triage?runId=${encodeURIComponent(runId)}&testSuiteId=${encodeURIComponent(testSuiteId as string)}&testCaseId=${encodeURIComponent(testCaseId as string)}`
       )
         .then(res => res.json())
-        .then(data => setTriage(data.analysis || ""))
+        .then(data => {
+          console.log("data", data);
+          return data;
+        })
+        .then(data => setTriage(data))
         .catch(() => setMessage("Failed to load triage"));
+    } else {
+      setMessage(
+        "Request incomplete.: runId: " + runId + ", testSuiteId: " + testSuiteId + ", testCaseId: " + testCaseId
+      );
     }
   }, [runId, testSuiteId, testCaseId]);
 
   // Handle submitting the updated triage.
   const handleSubmit = async () => {
-    if (!triage.trim()) {
+    if (triage == null) {
       setMessage("Triage cannot be empty.");
       return;
     }
 
     const params = {
-        runId: runId,
-        testSuiteId: testSuiteId,
-        testCaseId: testCaseId,
-        ticket: "TICKET-123",
-        insight: triage,
-        by: "me"
-    }
+      runId: runId,
+      testSuiteId: testSuiteId,
+      testCaseId: testCaseId,
+      ticket: triage.ticket,
+      insight: triage.insight,
+      by: triage.by
+    };
     const response = await fetch("/api/triage", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -50,12 +65,17 @@ export default function EditTriage({runId, testSuiteId, testCaseId}: {runId: str
   };
 
   return (
-    <div style={{margin: "auto", padding: "20px" }}>
-      <h1>Edit Triage</h1>
+    <div style={{ margin: "auto", padding: "20px" }}>
+      <h1>{runId}</h1>
       <p>
-        {testSuiteId.replace(/.*\./, "")}: {testCaseId.replace(/[$|_]/, " ")}   
+        {testSuiteId.replace(/.*\./, "")}: {testCaseId.replace(/[$|_]/, " ")}
       </p>
-      <textarea value={triage} onChange={e => setTriage(e.target.value)} rows={4} cols={50} />
+      <textarea
+        value={triage?.insight}
+        onChange={e => setTriage({ ticket: "TICKET-12345", by: "hiroshi", insight: e.target.value } as TriageNote)}
+        rows={4}
+        cols={80}
+      />
       <br />
       <button onClick={handleSubmit}>Save Changes</button>
       <p>{message}</p>
