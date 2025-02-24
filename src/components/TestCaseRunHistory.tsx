@@ -27,9 +27,6 @@ export default function TestCaseRunHistory({ testSuiteId, testCaseId, onSelect }
 
   return (
     <div style={{ margin: "auto", padding: "20px" }}>
-      <h1>
-        {testSuiteId.replace(/.*\./, "")}: {testCaseId.replace(/[$|_]/, " ")}
-      </h1>
       {message && <p>{message}</p>}
       <table border={1} cellPadding="5">
         <thead>
