@@ -66,10 +66,6 @@ export default function EditTriage({
 
   return (
     <div style={{ margin: "auto", padding: "20px" }}>
-      <h1>{runId}</h1>
-      <p>
-        {testSuiteId.replace(/.*\./, "")}: {testCaseId.replace(/[$|_]/, " ")}
-      </p>
       <textarea
         value={triage?.insight}
         onChange={e => setTriage({ ticket: "TICKET-12345", by: "hiroshi", insight: e.target.value } as TriageNote)}
