@@ -17,6 +17,9 @@ export default async function TestCaseRunsPage({
         runId={resolvedParams.runId}
         testSuiteId={resolvedParams.testSuiteId}
         testCaseId={resolvedParams.testCaseId}
+        onUpdate={(runId, testSuiteId, testCaseId) => {
+          console.log("Updated triage for", runId, testSuiteId, testCaseId);
+        }}
       />
     </div>
   );

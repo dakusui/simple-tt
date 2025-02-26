@@ -6,11 +6,13 @@ import { useEffect, useState } from "react";
 export default function EditTriage({
   runId,
   testSuiteId,
-  testCaseId
+  testCaseId,
+  onUpdate
 }: {
   runId: string;
   testSuiteId: string;
   testCaseId: string;
+  onUpdate: (runId, testSuiteId, testCaseId) => void;
 }) {
   const [triage, setTriage] = useState<TriageNote | undefined>(undefined);
   const [message, setMessage] = useState("");
@@ -60,6 +62,7 @@ export default function EditTriage({
     const result = await response.json();
     if (response.ok) {
       setMessage("Triage updated successfully!");
+      onUpdate(runId, testSuiteId, testCaseId);
     } else {
       setMessage(`Error: ${result.error}`);
     }
@@ -74,6 +77,7 @@ export default function EditTriage({
       )
         .then(res => res.json())
         .catch(() => setMessage("Failed to load triage"));
+      onUpdate(runId, testSuiteId, testCaseId);
     } catch (error) {
       setMessage("Failed to remove triage. :<" + error + ">");
     }

@@ -8,7 +8,6 @@ export async function PUT(req: Request) {
     const { runId, testSuiteId, testCaseId, insight, by, ticket } = body;
 
     const triageNote : TriageNote = await storeTriage(runId, testSuiteId, testCaseId, { ticket: ticket, insight: insight, by: by });
-    console.log("triageNote", triageNote);
     return NextResponse.json(triageNote);
   } catch (error) {
     if (error instanceof KnownError) {
@@ -23,9 +22,8 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const [runId, testSuiteId, testCaseId] = requireSearchParamsParametersForGetAreSet(searchParams);
     const triageNote: TriageNote | undefined = (await fetchTriage(runId, testSuiteId, testCaseId)) ?? undefined;
-    console.log("GET: triageNote", triageNote);
     if (triageNote) return NextResponse.json(triageNote);
-    return NextResponse.json(triageNote);
+    return NextResponse.json({});
   } catch (error) {
     if (error instanceof KnownError) {
       return NextResponse.json({ error: error.message }, { status: error.statusCode() });
@@ -39,7 +37,6 @@ export async function DELETE(req: Request) {
     const { searchParams } = new URL(req.url);
     const [runId, testSuiteId, testCaseId] = requireSearchParamsParametersForGetAreSet(searchParams);
     await removeTriage(runId, testSuiteId, testCaseId);
-    console.log("DELETE: triageNote");
     return NextResponse.json({});
   } catch (error) {
     if (error instanceof KnownError) {

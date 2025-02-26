@@ -69,6 +69,10 @@ export default function Dashboard() {
               runId={selectedTestRun[0]}
               testSuiteId={selectedTestRun[1].testSuiteId}
               testCaseId={selectedTestRun[1].testCaseId}
+              onUpdate={(runId, testSuiteId, testCaseId) => {
+                console.log("Updated triage for", runId, testSuiteId, testCaseId);
+                window.location.reload(); // Reload the page
+              }}
             />
           ) : (
             <p>Select a test run to edit.</p>
