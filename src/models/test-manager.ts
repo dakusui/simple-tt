@@ -1,4 +1,4 @@
-import { existsSync, readdirSync } from "fs";
+import { existsSync, readdirSync, rmSync } from "fs";
 import path from "path";
 import superjson from "superjson";
 import {
@@ -65,9 +65,16 @@ export async function storeTriage(
   return note;
 }
 
-export async function fetchTriage(runId: string, testSuiteId: string, testCaseId: string): Promise<TriageNote|null> {
+export async function removeTriage(runId: string, testSuiteId: string, testCaseId: string): Promise<void> {
   const testManager: TestManager = new TestManager(testManagerDataDir);
-  if (testManager.existsTriage(runId, testSuiteId, testCaseId)) 
+  if (testManager.existsTriage(runId, testSuiteId, testCaseId)) {
+    testManager.removeTriage(runId, testSuiteId, testCaseId);
+  }
+}
+
+export async function fetchTriage(runId: string, testSuiteId: string, testCaseId: string): Promise<TriageNote | null> {
+  const testManager: TestManager = new TestManager(testManagerDataDir);
+  if (testManager.existsTriage(runId, testSuiteId, testCaseId))
     return testManager.retrieveTriage(runId, testSuiteId, testCaseId).note;
   return null;
 }
@@ -214,6 +221,13 @@ export class TestManager {
   retrieveTriage(runId: string, testSuiteId: string, testCaseId: string): Triage {
     const triageFile: string = this.triageFilePath(runId, testSuiteId, testCaseId);
     return new Triage(runId, testSuiteId, testCaseId, readObjectFromJson(triageFile));
+  }
+
+  removeTriage(runId: string, testSuiteId: string, testCaseId: string) {
+    const triageFile: string = this.triageFilePath(runId, testSuiteId, testCaseId);
+    if (existsSync(triageFile)) {
+       rmSync(triageFile);
+    }
   }
 
   testSuites(): string[] {

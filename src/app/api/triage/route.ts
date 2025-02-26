@@ -1,5 +1,5 @@
 import { TriageNote } from "@/models/test-entities";
-import { fetchTriage, storeTriage } from "@/models/test-manager"; // Use server-side logic
+import { fetchTriage, removeTriage, storeTriage } from "@/models/test-manager"; // Use server-side logic
 import { NextResponse } from "next/server";
 
 export async function PUT(req: Request) {
@@ -34,6 +34,21 @@ export async function GET(req: Request) {
   }
 }
 
+export async function DELETE(req: Request) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const [runId, testSuiteId, testCaseId] = requireSearchParamsParametersForGetAreSet(searchParams);
+    await removeTriage(runId, testSuiteId, testCaseId);
+    console.log("DELETE: triageNote");
+    return NextResponse.json({});
+  } catch (error) {
+    if (error instanceof KnownError) {
+      return NextResponse.json({ error: error.message }, { status: error.statusCode() });
+    }
+    return NextResponse.json({ error: "Failed to fetch test runs: <" + error + ">" }, { status: 500 });
+  }
+}
+
 class KnownError extends Error {
   private httpStatusCode: number;
   constructor(statusCode: number, message: string) {
@@ -58,17 +73,4 @@ function requireSearchParamsParametersForGetAreSet(searchParams: URLSearchParams
     );
   }
   return [runId, testSuiteId, testCaseId];
-}
-
-function requireSearchParamsParametersForPutAreSet(
-  searchParams: URLSearchParams
-): [string, string, string, string, string, string?] {
-  const [runId, testSuiteId, testCaseId] = requireSearchParamsParametersForGetAreSet(searchParams);
-  const ticket = searchParams.get("ticket");
-  const insight = searchParams.get("insight");
-  const by = searchParams.get("by");
-  if (!insight || !by) {
-    throw new KnownError(400, `Missing required parameters: insight:<${insight}> , by:<${by}>`);
-  }
-  return [runId, testSuiteId, testCaseId, insight, by, ticket ?? undefined];
 }

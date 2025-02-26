@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { TriageNote } from "@/models/test-entities";
+import { useEffect, useState } from "react";
 
 export default function EditTriage({
   runId,
@@ -19,7 +19,8 @@ export default function EditTriage({
   useEffect(() => {
     if (runId && testSuiteId && testCaseId) {
       fetch(
-        `/api/triage?runId=${encodeURIComponent(runId)}&testSuiteId=${encodeURIComponent(testSuiteId as string)}&testCaseId=${encodeURIComponent(testCaseId as string)}`
+        `/api/triage?runId=${encodeURIComponent(runId)}&testSuiteId=${encodeURIComponent(testSuiteId as string)}&testCaseId=${encodeURIComponent(testCaseId as string)}`,
+        { method: "GET" }
       )
         .then(res => res.json())
         .then(data => {
@@ -64,6 +65,20 @@ export default function EditTriage({
     }
   };
 
+  // Handle removing the triage.
+  const handleRemove = async () => {
+    try {
+      fetch(
+        `/api/triage?runId=${encodeURIComponent(runId)}&testSuiteId=${encodeURIComponent(testSuiteId as string)}&testCaseId=${encodeURIComponent(testCaseId as string)}`,
+        { method: "DELETE" }
+      )
+        .then(res => res.json())
+        .catch(() => setMessage("Failed to load triage"));
+    } catch (error) {
+      setMessage("Failed to remove triage. :<" + error + ">");
+    }
+  };
+
   return (
     <div style={{ margin: "auto", padding: "20px" }}>
       <textarea
@@ -74,6 +89,7 @@ export default function EditTriage({
       />
       <br />
       <button onClick={handleSubmit}>Save Changes</button>
+      <button onClick={handleRemove}>Remove Triage</button>
       <p>{message}</p>
     </div>
   );
