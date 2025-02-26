@@ -21,7 +21,7 @@ export default function EditTriage({
   useEffect(() => {
     if (runId && testSuiteId && testCaseId) {
       fetch(
-        `/api/triage?runId=${encodeURIComponent(runId)}&testSuiteId=${encodeURIComponent(testSuiteId as string)}&testCaseId=${encodeURIComponent(testCaseId as string)}`,
+        `/api/triage/${encodeURIComponent(runId)}/${encodeURIComponent(testSuiteId as string)}/${encodeURIComponent(testCaseId as string)}`,
         { method: "GET" }
       )
         .then(res => res.json())
@@ -46,14 +46,11 @@ export default function EditTriage({
     }
 
     const params = {
-      runId: runId,
-      testSuiteId: testSuiteId,
-      testCaseId: testCaseId,
       ticket: triage.ticket,
       insight: triage.insight,
       by: triage.by
     };
-    const response = await fetch("/api/triage", {
+    const response = await fetch(`/api/triage/${encodeURIComponent(runId)}/${encodeURIComponent(testSuiteId as string)}/${encodeURIComponent(testCaseId as string)}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(params)
@@ -72,7 +69,7 @@ export default function EditTriage({
   const handleRemove = async () => {
     try {
       fetch(
-        `/api/triage?runId=${encodeURIComponent(runId)}&testSuiteId=${encodeURIComponent(testSuiteId as string)}&testCaseId=${encodeURIComponent(testCaseId as string)}`,
+        `/api/triage/${encodeURIComponent(runId)}/${encodeURIComponent(testSuiteId as string)}/${encodeURIComponent(testCaseId as string)}`,
         { method: "DELETE" }
       )
         .then(res => res.json())

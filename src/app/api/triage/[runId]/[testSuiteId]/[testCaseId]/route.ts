@@ -2,12 +2,20 @@ import { TriageNote } from "@/models/test-entities";
 import { fetchTriage, removeTriage, storeTriage } from "@/models/test-manager"; // Use server-side logic
 import { NextResponse } from "next/server";
 
-export async function PUT(req: Request) {
+export async function PUT(
+  req: Request,
+  { params }: { params: { runId: string; testSuiteId: string; testCaseId: string } }
+) {
   try {
     const body = await req.json();
-    const { runId, testSuiteId, testCaseId, insight, by, ticket } = body;
+    const { insight, by, ticket } = body;
+    const { runId, testSuiteId, testCaseId } = await params;
 
-    const triageNote : TriageNote = await storeTriage(runId, testSuiteId, testCaseId, { ticket: ticket, insight: insight, by: by });
+    const triageNote: TriageNote = await storeTriage(runId, testSuiteId, testCaseId, {
+      ticket: ticket,
+      insight: insight,
+      by: by
+    });
     return NextResponse.json(triageNote);
   } catch (error) {
     if (error instanceof KnownError) {
@@ -17,10 +25,12 @@ export async function PUT(req: Request) {
   }
 }
 
-export async function GET(req: Request) {
+export async function GET(
+  req: Request,
+  { params }: { params: { runId: string; testSuiteId: string; testCaseId: string } }
+) {
   try {
-    const { searchParams } = new URL(req.url);
-    const [runId, testSuiteId, testCaseId] = requireSearchParamsParametersForGetAreSet(searchParams);
+    const { runId, testSuiteId, testCaseId } = await params;
     const triageNote: TriageNote | undefined = (await fetchTriage(runId, testSuiteId, testCaseId)) ?? undefined;
     if (triageNote) return NextResponse.json(triageNote);
     return NextResponse.json({});
@@ -32,10 +42,12 @@ export async function GET(req: Request) {
   }
 }
 
-export async function DELETE(req: Request) {
+export async function DELETE(
+  req: Request,
+  { params }: { params: { runId: string; testSuiteId: string; testCaseId: string } }
+) {
   try {
-    const { searchParams } = new URL(req.url);
-    const [runId, testSuiteId, testCaseId] = requireSearchParamsParametersForGetAreSet(searchParams);
+    const { runId, testSuiteId, testCaseId } = await params;
     await removeTriage(runId, testSuiteId, testCaseId);
     return NextResponse.json({});
   } catch (error) {
@@ -57,17 +69,4 @@ class KnownError extends Error {
   public statusCode(): number {
     return this.httpStatusCode;
   }
-}
-
-function requireSearchParamsParametersForGetAreSet(searchParams: URLSearchParams): [string, string, string] {
-  const runId = searchParams.get("runId");
-  const testSuiteId = searchParams.get("testSuiteId");
-  const testCaseId = searchParams.get("testCaseId");
-  if (!testCaseId || !testSuiteId || !runId) {
-    throw new KnownError(
-      400,
-      `Missing required parameters: runId:<${runId}>, testSuiteId:<${testSuiteId}>, testCaseId:<${testCaseId}>`
-    );
-  }
-  return [runId, testSuiteId, testCaseId];
 }
