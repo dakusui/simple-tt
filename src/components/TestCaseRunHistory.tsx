@@ -13,7 +13,7 @@ export default function TestCaseRunHistory({ testSuiteId, testCaseId, onSelect }
     if (!testSuiteId || !testCaseId) return;
 
     fetch(
-      `/api/test-case-history?testSuiteId=${encodeURIComponent(testSuiteId)}&testCaseId=${encodeURIComponent(testCaseId)}`
+      `/api/test-case-history/${encodeURIComponent(testSuiteId)}/${encodeURIComponent(testCaseId)}`
     )
       .then(res => res.json())
       .then(data => {
