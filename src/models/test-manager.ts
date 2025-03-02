@@ -17,8 +17,8 @@ import { ensureDirectoryExists, readObjectFromJson, saveFile } from "./utils";
 
 class SequenceGenerator {
   private atomicValue = new Int32Array(new SharedArrayBuffer(4));
-  constructor() {
-    Atomics.store(this.atomicValue, 0, 0);
+  constructor(initial: number) {
+    Atomics.store(this.atomicValue, 0, initial);
   }
 
   next(): number {
@@ -26,7 +26,8 @@ class SequenceGenerator {
   }
 }
 const testManagerDataDir: string = path.join(process.cwd(), "data", "test-manager");
-const sequenceGeneratorForRunId = new SequenceGenerator();
+const testManagerRunDir: string = path.join(testManagerDataDir, "runs");
+const sequenceGeneratorForRunId = new SequenceGenerator(readdirSync(testManagerRunDir).length);
 
 export async function storeTestRun(jsonData: object): Promise<string> {
   const testManager: TestManager = new TestManager(testManagerDataDir);
