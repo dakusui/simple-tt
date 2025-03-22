@@ -1,7 +1,7 @@
 import { expect } from "vitest";
 import { TestCaseRunWithTriage } from "../../models/test-entities";
 import { TestManager } from "../../models/test-manager";
-import { Given, Then, When } from "../utils/gwt";
+import { Given, Then, When } from "../utils/gwt-qsync";
 import {
   createTestManager,
   ensureSessionDirectoryIsAbsent,

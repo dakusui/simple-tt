@@ -1,11 +1,14 @@
 #!/bin/bash -eu
 
+set -eu -o pipefail -o errtrace
+
 # Component versions to install
 COMPONENT_VERSIONS="$(cat <<'EOF'
 JDK:         21.0.5-oracle
 JAVADOC_JDK: 25.ea.2-open
 MAVEN:       3.9.6
 GOLANG:      1.21.6
+NODE:        23.10.0
 EOF
 )"
 
@@ -38,6 +41,9 @@ function maven_version() {
 }
 function golang_version() {
   version_for "GOLANG"
+}
+function node_version() {
+  version_for "NODE"
 }
 
 # Reads standard streams (stdout and stderr) and assign the content of them to variables specified by the first and
@@ -148,13 +154,40 @@ function sdk_install() {
            yes | sdk install '"${_lang}"' '"${_ver}"
 }
 
+function nvm_install() {
+    local _project_dir="${1}" _version="${2}";
+    local _nvm_dir="${_project_dir}/.dependencies/nvm"
+    bash -c 'export NVM_DIR='"${_nvm_dir}"' && source ${NVM_DIR}/nvm.sh &&                                                                                                                             nvm install '"${_version}"' ';
+}
+
+function npm_install() {
+    local _project_dir="${1}" _version="${2}";
+    bash -c "${_project_dir}/.dependencies/nvm/versions/node/v${_version}/bin/npm install";
+}
+
+function install_project_sdk() {
+  # sdkman & Java
+  export HOME="${_project_rcdir}" # To avoid .bashrc / .bash_profile / .zsh_profile being updated
+  export SDKMAN_DIR="${_project_sdkman_dir}"
+  # install sdkman
+  curl -s "https://get.sdkman.io"    | /bin/bash 2>&1 | progress "sdkman"
+}
+
+function install_project_nvm() {
+  local _project_dir="${1}"
+  export NVM_DIR="${_project_dir}/.dependencies/nvm"
+  export PROFILE="${_project_dir}/.dependencies/rc/nvm.rc"
+  touch "${PROFILE}"
+  mkdir -p "${NVM_DIR}"
+  curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.2/install.sh | bash
+}
+
 function progress() {
   local _item_name="${1}"
   echo "BEGIN: ${_item_name}" >&2
   sed -E 's/^(.*)$/  ['"${_item_name}"'] \1/g' >&2
   echo "END:   ${_item_name}" >&2
 }
-
 
 function caveats() {
   # LIMITATION: Only PATH environment variable mangling will be considered.
@@ -221,44 +254,55 @@ function main() {
   # Performs precheck
   __bootstrap__checkenv "${_precheck_reportdir}"
 
-  mkdir -p "${_project_rcdir}"
-  touch "${_project_rcdir}/.bash_profile" # Ensure the presence of .bash_profile read by env.rc
-  bootstrap_homebrew "${_project_brewdir}"
-  reset_caveats_rc "${_caveats_file}"
+  ({
+      mkdir -p "${_project_rcdir}"
+      touch "${_project_rcdir}/.bash_profile" # Ensure the presence of .bash_profile read by env.rc
+      bootstrap_homebrew "${_project_brewdir}"
+      reset_caveats_rc "${_caveats_file}"
+      
+      export HOMEBREW_NO_AUTO_UPDATE=1
+      # Disable this behaviour by setting HOMEBREW_NO_INSTALL_CLEANUP.
+      # Hide these hints with HOMEBREW_NO_ENV_HINTS (see `man brew`).
+      export HOMEBREW_NO_INSTALL_CLEANUP=
+      export HOMEBREW_NO_ENV_HINTS=
+      
+      # shellcheck disable=SC2129
+      install_brew_package "${_project_brewdir}" make       | caveats >> "${_caveats_file}"
+      install_brew_package "${_project_brewdir}" gnu-sed    | caveats >> "${_caveats_file}"
+      install_brew_package "${_project_brewdir}" findutils  | caveats >> "${_caveats_file}"
+      install_brew_package "${_project_brewdir}" act        | caveats >> "${_caveats_file}"
+      install_brew_package "${_project_brewdir}" pandoc     | caveats >> "${_caveats_file}"
+  }) 2>&1 | progress "brew"
 
-  export HOMEBREW_NO_AUTO_UPDATE=0
-  # Disable this behaviour by setting HOMEBREW_NO_INSTALL_CLEANUP.
-  # Hide these hints with HOMEBREW_NO_ENV_HINTS (see `man brew`).
-  export HOMEBREW_NO_INSTALL_CLEANUP=0
-  export HOMEBREW_NO_ENV_HINTS=0
+  ({
+      # golang
+      mkdir -p "${_project_godir}/env"
+      install_brew_package "${_project_brewdir}" goenv   > /dev/null
+      compose_goenv_rc "${_project_godir}" "$(golang_version)" > "${_goenv_file}"
+      # shellcheck disable=SC1090
+      source "${_goenv_file}"
+      "${_project_brewdir}/bin/goenv" install -q "$(golang_version)" 2>&1 | progress "$(golang_version)"
+      "${_project_godir}/env/versions/$(golang_version)/bin/go" install github.com/Songmu/make2help/cmd/make2help@latest 2>&1 | progress "make2help"
+  }) 2>&1 | progress "goenv"
 
-  # shellcheck disable=SC2129
-  install_brew_package "${_project_brewdir}" make       | caveats >> "${_caveats_file}"
-  install_brew_package "${_project_brewdir}" gnu-sed    | caveats >> "${_caveats_file}"
-  install_brew_package "${_project_brewdir}" findutils  | caveats >> "${_caveats_file}"
-  install_brew_package "${_project_brewdir}" act        | caveats >> "${_caveats_file}"
-  install_brew_package "${_project_brewdir}" pandoc     | caveats >> "${_caveats_file}"
+  ({
+      install_project_sdk "${_project_rcdir}" "${_project_sdkman_dir}"
 
-  # golang
-  mkdir -p "${_project_godir}/env"
-  install_brew_package "${_project_brewdir}" goenv   > /dev/null
-  compose_goenv_rc "${_project_godir}" "$(golang_version)" > "${_goenv_file}"
-  # shellcheck disable=SC1090
-  source "${_goenv_file}"
-  "${_project_brewdir}/bin/goenv" install -q "$(golang_version)" 2>&1 | progress "goenv:$(golang_version)"
-  "${_project_godir}/env/versions/$(golang_version)/bin/go" install github.com/Songmu/make2help/cmd/make2help@latest 2>&1 | progress "go:make2help"
+      sdk_install java "$(javadoc_jdk_version)"        2>&1 | progress "java for javadoc"
+      sdk_install java "$(jdk_version)"                2>&1 | progress "java"
+      sdk_install maven "$(maven_version)"             2>&1 | progress "maven"
 
-  # sdkman & Java
-  export HOME="${_project_rcdir}" # To avoid .bashrc / .bash_profile / .zsh_profile being updated
-  export SDKMAN_DIR="${_project_sdkman_dir}"
-  # install sdkman
-  curl -s "https://get.sdkman.io"    | /bin/bash 2>&1 | progress "sdkman"
+      compose_sdk_rc "$(jdk_version)" "$(javadoc_jdk_version)" > "${_sdkenv_file}"
+  }) 2>&1 | progress "sdkman"
 
-  sdk_install java "$(javadoc_jdk_version)"  | progress "sdkman:java for javadoc"
-  sdk_install java "$(jdk_version)"  | progress "sdkman:java"
-  sdk_install maven "$(maven_version)" | progress "sdkman:maven"
+  ({
+      install_project_nvm "${_projectdir}"               2>&1 | progress "install"
+      nvm_install "${_projectdir}" "$(node_version)"     2>&1 | progress "node:install"
 
-  compose_sdk_rc "$(jdk_version)" "$(javadoc_jdk_version)" > "${_sdkenv_file}"
+      (cd frontend && {
+	   npm_install "${_projectdir}" "$(node_version)" 2>&1 | progress "npm:install"
+       }) 2>&1 | progress "frontend"
+  }) 2>&1 | progress "nvm"
 }
 
 projectdir="$(dirname "${BASH_SOURCE[0]}")"

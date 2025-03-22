@@ -1,9 +1,8 @@
-import { isAsyncFunction } from "util/types";
 import { afterAll, describe, it } from "vitest";
 
 type Func<V, W> = (value: V) => W;
 type ExplainedFunc<V, W> = Func<V, W> & {
-  explain(message: string): ExplainedFunc<V, W>;
+  explain(explanation: string): ExplainedFunc<V, W>;
   explanation: string;
 };
 type Task<V> = Func<V, void>;
@@ -28,8 +27,8 @@ export function Done<U>(done: Task<U>): Task<U> {
 
 export function func<V, W>(func: (value: V) => W): ExplainedFunc<V, W> {
   const ret = Object.assign(func, { explanation: objToSimpleString(func) }) as ExplainedFunc<V, W>;
-  ret.explain = (message: string): ExplainedFunc<V, W> => {
-    return Object.assign(ret, { explanation: message });
+  ret.explain = (explanation: string): ExplainedFunc<V, W> => {
+    return Object.assign(ret, { explanation: explanation });
   };
   return ret;
 }
@@ -40,9 +39,9 @@ export function explainIfNecessary<V, W>(f: (value: V) => W): ExplainedFunc<V, W
 
   return func as ExplainedFunc<V, W>;
 }
-function objToSimpleString(object: any): string {
+function objToSimpleString(object: object): string {
   if ("explanation" in object) {
-    return object.expl;
+    return object.explanation as string;
   }
   return object
     .toString()
@@ -50,7 +49,7 @@ function objToSimpleString(object: any): string {
     .replaceAll(/; */g, ",")
     .replaceAll(/,+/g, ",")
     .replaceAll(/[\t \n]+/g, " ")
-    .replaceAll(/[\{\}]/g, "")
+    .replaceAll(/[{}]/g, "")
     .replaceAll(/ +/g, " ")
     .replaceAll(/[, ]+$/g, "");
 }
