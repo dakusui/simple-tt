@@ -1,5 +1,5 @@
 {
-  "name": "frontend",
+  "name": "simple-bts",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -22,8 +22,7 @@
     "eslint-plugin-unicorn": "^56.0.1",
     "jest-gwt": "^3.1.2",
     "multer": "^1.4.5-lts.1",
-    "next": "^15.2.3",
-    "pnpm": "^10.6.5",
+    "next": "^15.1.6",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "superjson": "^2.2.2"
