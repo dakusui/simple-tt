@@ -51,6 +51,19 @@ next-env.d.ts
 # build
 target
 
+# Ignore personal and workspace files
+.idea/workspace.xml
+.idea/usage.statistics.xml
+.idea/tasks.xml
+.idea/dictionaries/
+.idea/shelf/
+.idea/httpRequests/
+.idea/dataSources/
+
+# Optional: ignore gradle.xml if you don't want to share Gradle project settings
+# .idea/gradle.xml
+
+
 # Unknown generated files
 .name
 .DS_Store
