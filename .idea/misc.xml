@@ -9,19 +9,9 @@
   <component name="MavenProjectsManager">
     <option name="originalFiles">
       <list>
-        <option value="$PROJECT_DIR$/../insdog/pom.xml" />
-        <option value="$PROJECT_DIR$/../../valid8j/valid8j/pom.xml" />
-        <option value="$PROJECT_DIR$/../processstreamer/pom.xml" />
-        <option value="$PROJECT_DIR$/autotest/pom.xml" />
+        <option value="$PROJECT_DIR$/tests/pom.xml" />
       </list>
     </option>
-    <option name="ignoredFiles">
-      <set>
-        <option value="$PROJECT_DIR$/../../valid8j/valid8j/pom.xml" />
-      </set>
-    </option>
   </component>
-  <component name="ProjectRootManager" version="2" languageLevel="JDK_21" default="true" project-jdk-name="21" project-jdk-type="JavaSDK">
-    <output url="file://$PROJECT_DIR$/../insdog/target/classes" />
-  </component>
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_21" default="true" project-jdk-name="21" project-jdk-type="JavaSDK" />
 </project>
