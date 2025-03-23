@@ -1,10 +1,7 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
-node_modules
-data
-.next
-/.pnp
+.pnp
 .pnp.*
 .yarn/*
 !.yarn/patches
@@ -13,22 +10,24 @@ data
 !.yarn/versions
 .dependencies
 
+####
+# Frontend
 # testing
-/coverage
+coverage
 
 # data
-/data
-/data-compat
+data
+data-compat
 
 # next.js
-/.next/
-/out/
+.next/
+out/
+node_modules
 
-# production
-/build
+# non-production
+build
 
 # misc
-.DS_Store
 *.pem
 
 # debug
@@ -47,5 +46,12 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+####
+# Java (tests)
+# build
+target
+
 # Unknown generated files
 .name
+.DS_Store
+*~
