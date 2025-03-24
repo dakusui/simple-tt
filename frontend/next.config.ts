@@ -23,6 +23,9 @@ initializeEnvironment();
 const nextConfig: NextConfig = {
   productionBrowserSourceMaps: true,
   /* config options here */
+//  experimental: {
+    appDir: 'src/app',
+//  },
 };
 
 

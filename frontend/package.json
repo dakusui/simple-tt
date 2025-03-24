@@ -1,5 +1,5 @@
 {
-  "name": "simple-bts",
+  "name": "simple-tt",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -23,6 +23,7 @@
     "jest-gwt": "^3.1.2",
     "multer": "^1.4.5-lts.1",
     "next": "^15.1.6",
+    "pnpm": "^10.6.5",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "superjson": "^2.2.2"
