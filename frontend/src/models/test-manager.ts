@@ -35,6 +35,7 @@ export async function storeTestRun(jsonData: object): Promise<string> {
 }
 
 export async function fetchRecentStatuses(): Promise<TestCaseRunWithTriage[]> {
+  console.log("fetchRecentStatuses")
   // Mock data for testing, replace with actual data fetching logic
   const testManager: TestManager = new TestManager(testManagerDataDir);
   return testManager.retrieveLatestTestCaseStates();
