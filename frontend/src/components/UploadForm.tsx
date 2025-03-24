@@ -38,8 +38,8 @@ const UploadForm = () => {
           setMessage(`Error: ${result.error}`);
         }
       } catch (error) {
-        console.error('Invalid JSON file:', error);
-        setMessage('Invalid JSON file.');
+        console.error('Unknown error:', error);
+        setMessage('Unknown error');
       }
     };
   };

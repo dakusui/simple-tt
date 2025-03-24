@@ -21,13 +21,12 @@ function initializeEnvironment(): void {
 initializeEnvironment();
 
 const nextConfig: NextConfig = {
+  productionBrowserSourceMaps: true,
   /* config options here */
+//  experimental: {
+    appDir: 'src/app',
+//  },
 };
 
-module.exports = {
-  experimental: {
-  },
-  productionBrowserSourceMaps: true
-};
 
 export default nextConfig;
