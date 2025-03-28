@@ -1,5 +1,6 @@
 package com.example.app;
 
+import com.microsoft.playwright.Page;
 import jp.co.moneyforward.autotest.framework.action.Act;
 
 import java.util.function.Consumer;
@@ -14,4 +15,8 @@ public enum TestUtils {
     public static <T> Act.Let<T> let(T value) {
         return new Act.Let<>(value);
     }
+  
+  static PageObjectTransformer<Page> page(Page page) {
+    return PageObjectTransformer.create(() -> page);
+  }
 }
