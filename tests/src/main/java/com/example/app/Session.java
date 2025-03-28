@@ -12,7 +12,9 @@ record Session(Playwright playwright, Browser browser, Page page) {
     }
 
     static Session create(Playwright playwright, BrowserType browserType, boolean isHeadless) {
-        Browser browser = browserType.launch(new BrowserType.LaunchOptions().setHeadless(isHeadless));
+        Browser browser = browserType.launch(new BrowserType.LaunchOptions()
+                                                     .setTimeout(5_000)
+                                                     .setHeadless(isHeadless));
         return new Session(playwright,
                            browser,
                            browser.newPage());

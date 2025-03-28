@@ -4,9 +4,9 @@ import com.microsoft.playwright.BrowserType;
 import com.microsoft.playwright.Playwright;
 
 interface ExecutionProfile {
-    default Smoke.Session openSession() {
+    default Session openSession() {
         Playwright playwright = Playwright.create();
-        return Smoke.Session.create(playwright, browserType(playwright), isHeadless());
+        return Session.create(playwright, browserType(playwright), isHeadless());
     }
 
     default BrowserType browserType(Playwright playwright) {
@@ -14,7 +14,7 @@ interface ExecutionProfile {
     }
 
     default boolean isHeadless() {
-        return true;
+        return false;
     }
 
     static ExecutionProfile create() {
