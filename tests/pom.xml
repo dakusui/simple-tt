@@ -11,16 +11,28 @@
     <junit-jupiter-engine.version>5.10.1</junit-jupiter-engine.version>
     <junit-jupiter-api.version>5.10.1</junit-jupiter-api.version>
     <junit-platform-launcher.version>1.10.2</junit-platform-launcher.version>
-    <insdog-all.version>0.4.8-SNAPSHOT</insdog-all.version>
     <!-- BEGIN: test dependencies -->
     <!-- END: test dependencies -->
 
+    <insdog-all.version>0.4.8-SNAPSHOT</insdog-all.version>
+    <valid8j.version>2.1.7-SNAPSHOT</valid8j.version>
   </properties>
   <dependencies>
     <dependency>
       <groupId>com.github.dakusui</groupId>
       <artifactId>insdog-all</artifactId>
       <version>${insdog-all.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>com.github.dakusui</groupId>
+          <artifactId>valid8j</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>com.github.dakusui</groupId>
+      <artifactId>valid8j</artifactId>
+      <version>${valid8j.version}</version>
     </dependency>
     <dependency>
       <groupId>org.opentest4j</groupId>

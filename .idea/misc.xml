@@ -11,6 +11,7 @@
       <list>
         <option value="$PROJECT_DIR$/tests/pom.xml" />
         <option value="$PROJECT_DIR$/../insdog/pom.xml" />
+        <option value="$PROJECT_DIR$/../../valid8j/valid8j/pom.xml" />
       </list>
     </option>
   </component>
