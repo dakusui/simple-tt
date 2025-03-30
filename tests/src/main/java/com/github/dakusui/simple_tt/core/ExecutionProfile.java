@@ -1,9 +1,9 @@
-package com.example.app;
+package com.github.dakusui.simple_tt.core;
 
 import com.microsoft.playwright.BrowserType;
 import com.microsoft.playwright.Playwright;
 
-interface ExecutionProfile {
+public interface ExecutionProfile {
     default Session openSession() {
         Playwright playwright = Playwright.create();
         return Session.create(playwright, browserType(playwright), isHeadless());
