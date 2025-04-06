@@ -21,8 +21,11 @@
         <module name="insdog-all" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel>
-      <module name="tests" target="1.8" />
-    </bytecodeTargetLevel>
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="insdog-all" options="" />
+      <module name="tests_simple-tt" options="--add-reads com.github.dakusui.tests_simple-tt=ALL-UNNAMED" />
+    </option>
   </component>
 </project>
