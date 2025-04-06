@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.stream.Stream;
 
 public class CommandLauncher {
-  private final File file;
+  private final File directory;
   private final Shell shell;
   private final String command;
   private final List<CommandLauncherOption> options;
@@ -17,7 +17,7 @@ public class CommandLauncher {
   private final boolean background;
   
   CommandLauncher(File directory, Shell shell, String command, List<CommandLauncherOption> options, List<String> args, boolean background) {
-    this.file = directory;
+    this.directory = directory;
     this.shell = shell;
     this.command = command;
     this.options = options;
@@ -30,12 +30,16 @@ public class CommandLauncher {
   }
   
   public Stream<String> perform() {
-    return new ProcessStreamer.Builder(this.shell, composeCommandLine())
+    List<String> commandLine = composeCommandLine();
+    System.out.println("shell:<" + this.shell + ">, command:<" + commandLine + ">, directory:<" + this.directory + ">");
+    return new ProcessStreamer.Builder(this.shell, commandLine)
+        .cwd(this.directory)
         .build()
         .stream();
   }
   
-  private String composeCommandLine() {
+  private List<String> composeCommandLine() {
+    List<String> ret = new ArrayList<>();
     var b = new StringBuilder();
     b.append(this.command);
     for (var option : this.options) {
@@ -48,11 +52,11 @@ public class CommandLauncher {
       b.append(arg);
       b.append('"');
     }
+    ret.add(b.toString());
     if (this.background) {
-      b.append(" ");
-      b.append("&");
+      ret.add("&");
     }
-    return b.toString();
+    return ret;
   }
   
   public static class Builder {
@@ -74,6 +78,7 @@ public class CommandLauncher {
     
     /**
      * By giving `null` you can run the command in the current directory.
+     *
      * @param directory a directory in which the command is run.
      * @return This object.
      */
