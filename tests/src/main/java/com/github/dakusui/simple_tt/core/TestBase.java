@@ -16,39 +16,39 @@ import static com.github.dakusui.simple_tt.core.TestUtils.pageFromSession;
 import static java.util.Collections.synchronizedMap;
 import static jp.co.moneyforward.autotest.framework.utils.InsdogUtils.func;
 import static jp.co.moneyforward.autotest.framework.utils.InsdogUtils.let;
-import static jp.co.moneyforward.autotest.framework.utils.InternalUtils.createContext;
+import static jp.co.moneyforward.autotest.framework.internal.InternalUtils.createContext;
 
-public class TestBase implements AutotestRunner {
-    final Context context = createContext();
-    
-    @Override
-    public ReportingActionPerformer actionPerformer() {
-        return new ReportingActionPerformer(context, synchronizedMap(new LinkedHashMap<>()));
-    }
-    
-    @Named
-    @Export({"session", "page"})
-    @ClosedBy("closeSession")
-    public Scene openSession() {
-      return Scene.begin()
-                  .add("session", let(ExecutionProfile.create().openSession()))
-                  .add("page", pageFromSession(), "session")
-                  .end();
-    }
-    
-    @Named
-    @DependsOn("openSession")
-    public Scene closeSession() {
-      return Scene.begin()
-                  .add("NONE", func(Session::close), "session")
-                  .end();
-    }
-    
-    @Named
-    @DependsOn("openSession")
-    public Scene screenshot() {
-      return Scene.begin()
-                  .add("page", pageFromSession().andThen(new Screenshot()), "session")
-                  .end();
-    }
+public abstract class TestBase implements AutotestRunner {
+  final Context context = createContext();
+  
+  @Override
+  public ReportingActionPerformer actionPerformer() {
+    return new ReportingActionPerformer(context, synchronizedMap(new LinkedHashMap<>()));
+  }
+  
+  @Named
+  @Export({"session", "page"})
+  @ClosedBy("closeSession")
+  public Scene openSession() {
+    return Scene.begin()
+                .add("session", let(ExecutionProfile.create().openSession()))
+                .add("page", pageFromSession(), "session")
+                .end();
+  }
+  
+  @Named
+  @DependsOn("openSession")
+  public Scene closeSession() {
+    return Scene.begin()
+                .add("NONE", func(Session::close), "session")
+                .end();
+  }
+  
+  @Named
+  @DependsOn("openSession")
+  public Scene screenshot() {
+    return Scene.begin()
+                .add("page", pageFromSession().andThen(new Screenshot()), "session")
+                .end();
+  }
 }
