@@ -1,5 +1,6 @@
 package com.github.dakusui.simple_tt.tests;
 
+import com.github.dakusui.processstreamer.core.process.Shell;
 import com.github.dakusui.simple_tt.core.CommandLauncher;
 import com.github.dakusui.simple_tt.core.CurlClient;
 import com.github.dakusui.simple_tt.core.Session;
@@ -22,7 +23,6 @@ import static jp.co.moneyforward.autotest.framework.utils.InsdogUtils.sink;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @AutotestExecution(defaultExecution = @Spec(
-    beforeAll = "openSession",
     beforeEach = "screenshot",
     value = {"toStatus", "toDashboard"},
     afterEach = "screenshot",
@@ -39,7 +39,9 @@ public class Smoke extends TestBase {
     return Scene.begin("session")
                 .add(sink((Session s) -> CommandLauncher.begin()
                                                         .directory(s.frontendDirectory())
-                                                        .shell("/bin/nohup")
+                                                        .shell(localShell().withProgram("/bin/nohup")
+                                                                           .clearOptions()
+                                                                           .build())
                                                         .command("npm")
                                                         .arg("run")
                                                         .arg("dev")
@@ -47,6 +49,10 @@ public class Smoke extends TestBase {
                                                         .perform()
                                                         .forEach(System.err::println)))
                 .end();
+  }
+  
+  private static Shell.Builder.ForLocal localShell() {
+    return new Shell.Builder.ForLocal();
   }
   
   @Named
@@ -58,17 +64,23 @@ public class Smoke extends TestBase {
   public Scene loadDatasets() {
     return Scene.begin().end();
   }
+
+  @Named
+  public Scene killAll() {
+    return Scene.begin().end();
+  }
   
   @Named
+  @DependsOn("openSession")
   @PreparedBy("nop")
-  @PreparedBy("startServer")
-  public Scene isServerRunning() {
+  @PreparedBy({"killAll", "startServer"})
+  public Scene ensureServerIsRunning() {
     return Scene.begin("session")
                 .add(sink((Session s) -> require(value(CurlClient.begin()
                                                                  .option("-s")
                                                                  .option("-w", "%{http_code}")
                                                                  .option("-o", "/dev/null")
-                                                                 .url("http://localhost:3000/status")
+                                                                 .url(s.healthCheckEndpointUrl())
                                                                  .perform()
                                                                  .collect(joining()))
                                                      .toBe()
@@ -77,14 +89,14 @@ public class Smoke extends TestBase {
   }
   
   @Named
-  @DependsOn("isServerRunning")
+  @DependsOn("ensureServerIsRunning")
   @PreparedBy("nop")
   @PreparedBy({"unloadDatasets", "loadDatasets"})
-  public Scene isDatasetLoaded() {
+  public Scene ensureDatasetIsLoaded() {
     return Scene.begin().end();
   }
   
-  @DependsOn({"isServerRunning", "isDatasetLoaded", "openSession"})
+  @DependsOn({"openSession", "ensureServerIsRunning", "ensureDatasetIsLoaded"})
   @Export("page")
   @Named
   public Scene toStatus() {
@@ -93,7 +105,7 @@ public class Smoke extends TestBase {
                 .end();
   }
   
-  @DependsOn({"isServerRunning", "isDatasetLoaded", "openSession"})
+  @DependsOn({"ensureServerIsRunning", "ensureDatasetIsLoaded", "openSession"})
   @Export("page")
   @Named
   public Scene toDashboard() {
