@@ -6,9 +6,9 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="tests_simple-tt" />
         <module name="valid8j" />
-        <module name="tests" />
+        <module name="processstreamer" />
+        <module name="autotest" />
       </profile>
       <profile name="Annotation profile for insdog" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
@@ -24,8 +24,8 @@
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="autotest" options="--add-reads com.github.dakusui.tests_simple-tt=ALL-UNNAMED" />
       <module name="insdog-all" options="" />
-      <module name="tests_simple-tt" options="--add-reads com.github.dakusui.tests_simple-tt=ALL-UNNAMED" />
     </option>
   </component>
 </project>
