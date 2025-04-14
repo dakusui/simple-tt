@@ -15,7 +15,7 @@
     <!-- END: test dependencies -->
 
     <insdog-all.version>0.4.8-SNAPSHOT</insdog-all.version>
-    <valid8j.version>2.1.7</valid8j.version>
+    <valid8j.version>2.1.8-SNAPSHOT</valid8j.version>
   </properties>
   <dependencies>
     <dependency>

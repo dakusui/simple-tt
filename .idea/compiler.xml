@@ -21,10 +21,13 @@
         <module name="insdog-all" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="tests_simple-tt" target="21" />
+    </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
-      <module name="autotest" options="--add-reads com.github.dakusui.tests_simple-tt=ALL-UNNAMED" />
+      <module name="autotest" options="--add-reads com.github.dakusui.autotest=ALL-UNNAMED" />
       <module name="insdog-all" options="" />
     </option>
   </component>
