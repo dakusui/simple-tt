@@ -9,7 +9,7 @@ import java.io.File;
 
 public record Session(Playwright playwright, Browser browser, Page page) {
   public String healthCheckEndpointUrl() {
-    return "http://localhost:3000/hello";
+    return "http://localhost:3000/status";
   }
   
   public File frontendDirectory() {

@@ -1,0 +1,15 @@
+function execute_stage() {
+  local _times="${1}" _interval="${2}"
+  local _i _cmd
+  shift;
+  shift;
+  _cmd=$(IFS=":"; echo "$*")
+  for _i in $(seq 1 "${_times}"); do
+    if (execute "${_cmd}"); then
+      return 0
+    fi
+    sleep "${_interval}"
+  done
+  (execute "${_cmd}")
+  return $?
+}

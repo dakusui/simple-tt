@@ -1,0 +1,23 @@
+source "$(dirname "$(dirname "${BASH_SOURCE[0]}")")/lib/config.rc"
+
+function _upload_datafile() {
+  local _datafile_name="${1}"
+  curl -X POST "$(_upload_endpoint)"       \
+       -H "Content-Type: application/json" \
+       --data-binary @"$(_resolve_datafile "${_datafile_name}")"
+}
+
+function _upload_endpoint() {
+  echo "$(endpoint_origin)/api/upload"
+}
+
+function _resolve_datafile() {
+  local _datafile_name="${1}"
+  echo "$(resolve_frontend_basedir)/src/tests/resources/${_datafile_name}"
+}
+
+function execute_stage() {
+  for _i in "${@}"; do
+    _upload_datafile "${_i}"
+  done
+}
