@@ -1,8 +1,8 @@
 package com.github.dakusui.simple_tt.tests;
 
-import com.github.dakusui.processstreamer.core.process.Shell;
-import com.github.dakusui.simple_tt.core.CommandLauncher;
-import com.github.dakusui.simple_tt.core.CurlClient;
+import com.github.dakusui.processstreamer.core.process.ContextualCommandInvoker;
+import com.github.dakusui.processstreamer.launchers.CommandLauncher;
+import com.github.dakusui.processstreamer.launchers.CurlClient;
 import com.github.dakusui.simple_tt.core.Session;
 import com.github.dakusui.simple_tt.core.TestBase;
 import com.microsoft.playwright.Page;
@@ -45,14 +45,13 @@ public class Smoke extends TestBase {
                                                         .command("npm")
                                                         .arg("run")
                                                         .arg("dev")
-                                                        .background()
                                                         .perform()
                                                         .forEach(System.err::println)))
                 .end();
   }
   
-  private static Shell.Builder.ForLocal localShell() {
-    return new Shell.Builder.ForLocal();
+  private static ContextualCommandInvoker.Builder.ForLocal localShell() {
+    return new ContextualCommandInvoker.Builder.ForLocal();
   }
   
   @Named
@@ -64,7 +63,7 @@ public class Smoke extends TestBase {
   public Scene loadDatasets() {
     return Scene.begin().end();
   }
-
+  
   @Named
   public Scene killAll() {
     return Scene.begin().end();
