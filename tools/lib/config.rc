@@ -1,0 +1,18 @@
+function endpoint_origin() {
+    echo "http://localhost:3000"
+}
+
+function resolve_frontend_basedir() {
+  echo "$(project_root)/frontend"
+}
+
+function project_root() {
+  local _source="${BASH_SOURCE[0]}"
+  local _dir
+  _dir="$(dirname "${_source}")"
+  _dir="$(dirname "${_dir}")"
+  _dir="$(dirname "${_dir}")"
+  _dir="$(readlink "${_dir}")"
+  echo "${_dir}"
+}
+
