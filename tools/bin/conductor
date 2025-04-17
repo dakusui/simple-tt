@@ -3,7 +3,8 @@
 set -eu -o pipefail -o errtrace
 shopt -s inherit_errexit nullglob
 
-source "$(dirname "${BASH_SOURCE[0]}")/lib/utils.rc"
+source "$(dirname "$(dirname "${BASH_SOURCE[0]}")")/lib/utils.rc"
+source "$(dirname "$(dirname "${BASH_SOURCE[0]}")")/lib/config.rc"
 
 __execute_stage_driver_filename=
 __execute_stage_stage_name=
@@ -12,7 +13,7 @@ function __execute_stage() {
   shift
   message "EXECUTING:${_stage}:[${*}]"
   {
-    __execute_stage_driver_filename="$(dirname "${BASH_SOURCE[0]}")/drivers/${_stage}.rc"
+    __execute_stage_driver_filename="$(dirname "$(dirname "${BASH_SOURCE[0]}")")/drivers/${_stage}.rc"
     __execute_stage_stage_name="${_stage}"
     function execute_stage() {
       abort "The driver: '${__execute_stage_driver_filename}' does not define a function 'execute_stage'"
@@ -39,7 +40,7 @@ function execute() {
   if [[ "${_first}" == STOP ]]; then
     execute killall:node:npm "${@}"
   elif [[ "${_first}" == START ]]; then
-    execute start:../frontend "${@}"
+    execute start:"$(resolve_frontend_basedir)" "${@}"
   elif [[ "${_first}" == STATUS ]]; then
     execute is_running "${@}"
   elif [[ "${_first}" == REFRESH_EXECUTION_ENVIRONMENT ]]; then

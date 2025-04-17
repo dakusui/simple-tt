@@ -1,7 +1,0 @@
-function endpoint_origin() {
-    echo "http://localhost:3000"
-}
-
-function resolve_frontend_basedir() {
-  echo "../frontend"
-}

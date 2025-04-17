@@ -22,6 +22,7 @@
     </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="tests_simple-tt" target="21" />
+      <module name="valid8j" target="1.8" />
     </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
