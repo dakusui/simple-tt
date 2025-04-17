@@ -1,5 +1,0 @@
-source "$(dirname "$(dirname "${BASH_SOURCE[0]}")")/lib/config.rc"
-
-function execute_stage() {
-  rm -fr "$(resolve_frontend_basedir)/data/test-manager"
-}

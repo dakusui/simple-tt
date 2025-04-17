@@ -1,8 +1,0 @@
-function execute_stage() {
-  {
-    lsof -i :3000 && echo "Server is running" >&2
-  } || {
-    echo "Server is NOT running" >&2
-    return 1
-  }
-}

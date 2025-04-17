@@ -8,36 +8,22 @@ source "$(dirname "$(dirname "${BASH_SOURCE[0]}")")/lib/config.rc"
 
 __execute_stage_driver_filename=
 __execute_stage_stage_name=
-function __perform_stage() {
-  local _type="${1}"
-  local _stage="${2}"
+function __execute_stage() {
+  local _stage="${1}"
   shift
-  shift
+  message "EXECUTING:${_stage}:[${*}]"
   {
-    __perform_stage_driver_filename="$(dirname "$(dirname "${BASH_SOURCE[0]}")")/drivers/${_stage}.rc"
-    __perform_stage_stage_name="${_stage}"
+    __execute_stage_driver_filename="$(dirname "$(dirname "${BASH_SOURCE[0]}")")/drivers/${_stage}.rc"
+    __execute_stage_stage_name="${_stage}"
     function execute_stage() {
-      # shellcheck disable=SC2317
-      abort "The driver: '${__perform_stage_driver_filename}' does not define a function 'execute_stage'"
+      abort "The driver: '${__execute_stage_driver_filename}' does not define a function 'execute_stage'"
     }
     function stage_name() {
-      # shellcheck disable=SC2317
-      echo "${__perform_stage_stage_name}"
-    }
-    function help_stage() {
-      # shellcheck disable=SC2317
-      echo "no help available"
+      echo "'${__execute_stage_stage_name}'"
     }
     # shellcheck disable=SC1090
-    source "${__perform_stage_driver_filename}" || abort "Driver not found: '${__perform_stage_driver_filename}'"
-    if [[ "${_type}" == EXECUTE ]]; then
-      (message "EXECUTING:${_stage}:[${*}]" && execute_stage "$@" && message "DONE:${_stage}") || abort "FAILED:${_stage}"
-    elif [[ "${_type}" == HELP ]]; then
-      (echo "$(stage_name):: $(help_stage)") || abort "FAILED:${_stage}"
-    else
-      abort "Unknown behavior type: '${_type}' was specified."
-    fi
-
+    source "${__execute_stage_driver_filename}" || abort "Driver not found: '${__execute_stage_driver_filename}'"
+    ("execute_stage" "$@" && message "DONE:${_stage}") || abort "FAILED:${_stage}"
   } || {
     message "FAILED:${_stage}"
     return 1
@@ -45,42 +31,37 @@ function __perform_stage() {
   return 0
 }
 
-function perform() {
+function execute() {
   if [[ "${#@}" == 0 ]]; then
     return 0
   fi
-  local _type="${1}"
-  local _first="${2}"
+  local _first="${1}"
   shift
-  shift
-  if [[ "${_type}" != "EXECUTE" && "${_type}" != "HELP" ]]; then
-    abort "Unknown behavior type: '${_type}'"
-  fi
   if [[ "${_first}" == STOP ]]; then
-    perform "${_type}" killall:node:npm "${@}"
+    execute killall:node:npm "${@}"
   elif [[ "${_first}" == START ]]; then
-    perform "${_type}" start:"$(resolve_frontend_basedir)" "${@}"
+    execute start:"$(resolve_frontend_basedir)" "${@}"
   elif [[ "${_first}" == STATUS ]]; then
-    perform "${_type}" is_running "${@}"
+    execute is_running "${@}"
   elif [[ "${_first}" == REFRESH_EXECUTION_ENVIRONMENT ]]; then
-    perform "${_type}" refresh_execution_environment "${@}"
+    execute refresh_execution_environment "${@}"
   elif [[ "${_first}" == ERASE_DATASET ]]; then
-    perform "${_type}" wipe-datasets "${@}"
+    execute wipe-datasets "${@}"
   elif [[ "${_first}" == LOAD_DATASET ]]; then
-    perform "${_type}" upload:v2/run-1.json \
-            "${_type}" upload:v2/run-2.json "${@}"
+    execute upload:v2/run-1.json \
+            upload:v2/run-2.json "${@}"
   else
     IFS=':' read -r -a _args <<<"${_first}"
-    __perform_stage "${_type}" "${_args[@]}" || exit 1
-    perform "${@}"
+    __execute_stage "${_args[@]}" || exit 1
+    execute "${@}"
   fi
 }
 
 function main() {
   if [[ "${#@}" == 0 ]]; then
-    perform EXECUTE STATUS
+    execute STATUS
   else
-    perform "${@}"
+    execute "${@}"
   fi
 }
 main "${@}"

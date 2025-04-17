@@ -1,4 +1,0 @@
-function execute_stage() {
-  echo 'Executing fail.rc'
-  return 1
-}
