@@ -4,3 +4,7 @@ source "$(dirname "$(dirname "${BASH_SOURCE[0]}")")/lib/config.rc"
 function execute_stage() {
   curl "$(endpoint_origin)/hello" >/dev/null
 }
+
+function help_stage() {
+  echo 'This is a "Hello world" stage'
+}
