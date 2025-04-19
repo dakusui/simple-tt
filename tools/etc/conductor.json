@@ -1,0 +1,45 @@
+{
+  "STOP": [
+    {
+      "stage": "killall",
+      "args": [
+        "node",
+        "npm"
+      ]
+    }
+  ],
+  "START": [
+    {
+      "stage": "start-frontend"
+    }
+  ],
+  "STATUS": [
+    {
+      "stage": "is_running"
+    }
+  ],
+  "REFRESH_EXECUTION_STATUS": [
+    {
+      "stage": "refresh_execution_environment"
+    }
+  ],
+  "ERASE_DATASET": [
+    {
+      "stage": "wipe-datasets"
+    }
+  ],
+  "LOAD_DATASET": [
+    {
+      "stage": "upload",
+      "args": [
+        "v2/run-1.json"
+      ]
+    },
+    {
+      "stage": "upload",
+      "args": [
+        "v2/run-2.json"
+      ]
+    }
+  ]
+}
