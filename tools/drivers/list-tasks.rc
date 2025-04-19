@@ -1,0 +1,8 @@
+function execute_stage() {
+  local _dir
+  jq -r '.tasks|keys[]' "$(resolve_task_file)"
+}
+
+function describe_stage() {
+  echo 'List all available tasks'
+}
