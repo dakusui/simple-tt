@@ -1,4 +1,4 @@
 function execute_stage() {
-  (cd "$(resolve_frontend_basedir)" &&
-   nohup npm run dev &)
+  cd "$(resolve_frontend_basedir)" &&
+  nohup npm run dev > "$(resolve_logdir)/frontend.log"  2>&1 < /dev/null & disown
 }
