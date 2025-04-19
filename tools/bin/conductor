@@ -6,6 +6,7 @@ shopt -s inherit_errexit nullglob
 source "$(dirname "$(dirname "${BASH_SOURCE[0]}")")/lib/utils.rc"
 source "$(dirname "$(dirname "${BASH_SOURCE[0]}")")/lib/config.rc"
 
+debug_enabled=false
 __execute_stage_driver_filename=
 __execute_stage_stage_name=
 function __perform_stage() {
@@ -26,21 +27,26 @@ function __perform_stage() {
     }
     function describe_stage() {
       # shellcheck disable=SC2317
-      echo "no description available for this stage."
+      echo "no description available for this stage. (${*})"
     }
     [[ -e "${__perform_stage_driver_filename}" ]] || abort "Neither a task nor a driver not found for : '${__perform_stage_stage_name}'"
     # shellcheck disable=SC1090
     source "${__perform_stage_driver_filename}" || abort "Failed to load driver: '${__perform_stage_driver_filename}'"
     if [[ "${_type}" == EXECUTE ]]; then
-      (message "EXECUTING:${_stage}:[${*}]" && execute_stage "$@" && message "DONE:${_stage}") || abort "FAILED:${_stage}"
+      local _rest=("${@}") _debug=""
+      echo -e "\e[1;34mBEGIN STAGE:\e[0m \e[4m${_stage}\e[0m" >&2
+      if [[ "${debug_enabled}" == true ]]; then
+        _debug="x"
+      fi
+      (set -eu${_debug} -o pipefail -o errtrace; execute_stage "$@") || abort "FAILED:${_stage}"
+      echo -e "\e[1;34mEND STAGE:\e[0m   \e[4m${_stage}\e[0m" >&2
     elif [[ "${_type}" == DESCRIBE ]]; then
-      (echo "$(stage_name):: $(describe_stage)") || abort "FAILED:${_stage}"
+      (echo "$(stage_name):: $(describe_stage "$@")") || abort "FAILED:${_stage}"
     else
       abort "Unknown behavior type: '${_type}' was specified."
     fi
 
   } || {
-    message "FAILED:${_stage}"
     return 1
   }
   return 0
@@ -51,24 +57,25 @@ function perform() {
     return 0
   fi
   local _type="${1}"
-  local _first="${2}"
+  local _task="${2}"
   shift
   shift
   if [[ "${_type}" != "EXECUTE" && "${_type}" != "DESCRIBE" ]]; then
     abort "Unknown behavior type: '${_type}'"
   fi
-  if task_defined "${_first}"; then
+  if task_defined "${_task}"; then
     local _task_defs _i
-    mapfile -t _task_defs < <(task_definition_for "${_first}")
-    message "TASK_DEFS:" "${_task_defs[@]}"
+    echo -e "\e[1;34mBEGIN TASK:\e[0m  \e[4m${_task}\e[0m" >&2
+    mapfile -t _task_defs < <(task_definition_for "${_task}")
     for _i in "${_task_defs[@]}"; do
-      perform "${_type}" "${_i}"
-    done
+      perform "${_type}" "${_i}" 2>&1
+    done < /dev/null 2>&1
     if [[ "${#}" -gt 0 ]]; then
       perform "${@}"
     fi
+    echo -e "\e[1;34mEND TASK:\e[0m    \e[4m${_task}\e[0m" >&2
   else
-    IFS=':' read -r -a _args <<<"${_first}"
+    IFS=':' read -r -a _args <<<"${_task}"
     __perform_stage "${_type}" "${_args[@]}" || exit 1
     perform "${@}"
   fi
@@ -98,6 +105,9 @@ main() {
         ;;
       --execute)
         _types+=("EXECUTE")
+        ;;
+      --debug)
+        debug_enabled=true
         ;;
       -*)
         echo "Unknown option: $1"
