@@ -1,5 +1,7 @@
 package com.github.dakusui.simple_tt.tests;
 
+import com.github.dakusui.processstreamer.core.process.CommandInvoker;
+import com.github.dakusui.processstreamer.launchers.CommandLauncher;
 import com.github.dakusui.processstreamer.launchers.CurlClient;
 import com.github.dakusui.simple_tt.core.Session;
 import com.github.dakusui.simple_tt.core.TestBase;
@@ -18,7 +20,6 @@ import static java.util.stream.Collectors.joining;
 import static jp.co.moneyforward.autotest.actions.web.TableQuery.Term.term;
 import static jp.co.moneyforward.autotest.actions.web.TableQuery.select;
 import static jp.co.moneyforward.autotest.framework.testengine.PlanningStrategy.DEPENDENCY_BASED;
-import static jp.co.moneyforward.autotest.framework.utils.InsdogUtils.sink;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @AutotestExecution(defaultExecution = @Spec(
@@ -33,14 +34,14 @@ public class Smoke extends TestBase {
   }
   
   @Named
-  public Scene unloadDatasets() {
-    return Scene.begin().end();
+  public void startServer(@From("session") Session session) {
+    CommandLauncher.begin()
+                   .command("conductor")
+                   .arg("START")
+                   .perform()
+                   .forEach(System.out::println);
   }
   
-  @Named
-  public Scene loadDatasets() {
-    return Scene.begin().end();
-  }
   
   @Named
   public Scene killAll() {
@@ -50,18 +51,17 @@ public class Smoke extends TestBase {
   @Named
   @DependsOn("openSession")
   @PreparedBy("nop")
-  public Scene ensureServerIsRunning() {
-    return Scene.begin("session")
-                .add(sink((Session s) -> require(value(CurlClient.begin()
-                                                                 .option("-s")
-                                                                 .option("-w", "%{http_code}")
-//                                                                 .option("-o", "/dev/null")
-                                                                 .url(s.healthCheckEndpointUrl())
-                                                                 .perform()
-                                                                 .collect(joining()))
-                                                     .toBe()
-                                                     .endingWith("200"))))
-                .end();
+  @PreparedBy("startServer")
+  public void ensureServerIsRunning(@From("session") Session session) {
+    require(value(CurlClient.begin()
+                            .option("-s")
+                            .option("-w", "%{http_code}")
+                            .option("-o", "/dev/null")
+                            .url(session.healthCheckEndpointUrl())
+                            .perform()
+                            .collect(joining()))
+                .toBe()
+                .equalTo("200"));
   }
   
   @DependsOn({"openSession", "ensureServerIsRunning"})
@@ -106,14 +106,13 @@ public class Smoke extends TestBase {
   
   @Named
   @When({"toDashboard$simplerStyle"})
-  public void thenTestSuiteOfFirstElementInTestSuiteTableIs_First_$simplerStyle(Page r) {
-    assertStatement(value(r).tableQuery(select("Test Suite")
-                                            .from("body table")
-                                            .where(term("#", "0"))
-                                            .$())
-                            .locatorElementAt(0)
-                            .textContent()
-                            .toBe()
-                            .containing("First"));
+  public void thenTestSuiteOfFirstElementInTestSuiteTableIs_First_$simplerStyle(Page page) {
+    assertStatement(value(page).tableQuery(select("Test Suite").from("body table")
+                                                               .where(term("#", "0"))
+                                                               .$())
+                               .locatorElementAt(0)
+                               .textContent()
+                               .toBe()
+                               .containing("First"));
   }
 }

@@ -12,11 +12,19 @@
     "START": [
       {
         "stage": "start-frontend"
+      },
+      {
+        "stage": "wait-for",
+        "args": [
+          "2",
+          "3",
+          "is-running"
+        ]
       }
     ],
     "STATUS": [
       {
-        "stage": "is_running"
+        "stage": "is-running"
       }
     ],
     "REFRESH_EXECUTION_STATUS": [

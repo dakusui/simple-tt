@@ -38,10 +38,10 @@ function __perform_stage() {
       if [[ "${debug_enabled}" == true ]]; then
         _debug="x"
       fi
-      (set -eu${_debug} -o pipefail -o errtrace; execute_stage "$@") || abort "FAILED:${_stage}"
+      (set -eu${_debug} -o pipefail -o errtrace; execute_stage "$@" | cat) || abort "\e[1;31mFAILED: \e[4m${_stage}\e[0m"
       echo -e "\e[1;34mEND STAGE:\e[0m   \e[4m${_stage}\e[0m" >&2
     elif [[ "${_type}" == DESCRIBE ]]; then
-      (echo "$(stage_name):: $(describe_stage "$@")") || abort "FAILED:${_stage}"
+      (echo "$(stage_name):: $(describe_stage "$@")") || abort "\e[1;31mFAILED: \e[4m${_stage}\e[0m"
     else
       abort "Unknown behavior type: '${_type}' was specified."
     fi
