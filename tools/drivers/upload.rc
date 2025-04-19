@@ -5,6 +5,7 @@ function _upload_datafile() {
   curl -X POST "$(_upload_endpoint)"       \
        -H "Content-Type: application/json" \
        --data-binary @"$(_resolve_datafile "${_datafile_name}")"
+  echo
 }
 
 function _upload_endpoint() {
