@@ -1,5 +1,5 @@
 function execute_stage() {
   local _dir="${1}"
-  (cd "${_dir}" &&
+  (cd "$(resolve_frontend_basedir)" &&
    nohup npm run dev &)
 }

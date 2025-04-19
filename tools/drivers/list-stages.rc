@@ -1,0 +1,9 @@
+function execute_stage() {
+  local _dir
+  _dir="$(dirname "${BASH_SOURCE[0]}")"
+  find "${_dir}" -name '*.rc' | sed -E 's!^'"${_dir}"/'!!' | sed -E 's/.rc//'
+}
+
+function describe_stage() {
+  echo 'List all available stages'
+}

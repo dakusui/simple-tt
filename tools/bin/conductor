@@ -24,16 +24,16 @@ function __perform_stage() {
       # shellcheck disable=SC2317
       echo "${__perform_stage_stage_name}"
     }
-    function help_stage() {
+    function describe_stage() {
       # shellcheck disable=SC2317
-      echo "no help available"
+      echo "no description available for this stage."
     }
     # shellcheck disable=SC1090
     source "${__perform_stage_driver_filename}" || abort "Driver not found: '${__perform_stage_driver_filename}'"
     if [[ "${_type}" == EXECUTE ]]; then
       (message "EXECUTING:${_stage}:[${*}]" && execute_stage "$@" && message "DONE:${_stage}") || abort "FAILED:${_stage}"
-    elif [[ "${_type}" == HELP ]]; then
-      (echo "$(stage_name):: $(help_stage)") || abort "FAILED:${_stage}"
+    elif [[ "${_type}" == DESCRIBE ]]; then
+      (echo "$(stage_name):: $(describe_stage)") || abort "FAILED:${_stage}"
     else
       abort "Unknown behavior type: '${_type}' was specified."
     fi
@@ -53,13 +53,13 @@ function perform() {
   local _first="${2}"
   shift
   shift
-  if [[ "${_type}" != "EXECUTE" && "${_type}" != "HELP" ]]; then
+  if [[ "${_type}" != "EXECUTE" && "${_type}" != "DESCRIBE" ]]; then
     abort "Unknown behavior type: '${_type}'"
   fi
   if [[ "${_first}" == STOP ]]; then
     perform "${_type}" killall:node:npm "${@}"
   elif [[ "${_first}" == START ]]; then
-    perform "${_type}" start:"$(resolve_frontend_basedir)" "${@}"
+    perform "${_type}" start-frontend:"$(resolve_frontend_basedir)" "${@}"
   elif [[ "${_first}" == STATUS ]]; then
     perform "${_type}" is_running "${@}"
   elif [[ "${_first}" == REFRESH_EXECUTION_ENVIRONMENT ]]; then
@@ -76,11 +76,52 @@ function perform() {
   fi
 }
 
-function main() {
-  if [[ "${#@}" == 0 ]]; then
-    perform EXECUTE STATUS
-  else
-    perform "${@}"
-  fi
+show_help() {
+  echo "Usage: $(basename "${0}") [--help] [--execute] task..."
+  echo
+  echo "Options:"
+  echo "  --help       Show this help message"
+  echo "  --execute    Run a given command (default)"
+  echo "  --describe   Describe a given command"
+  echo
+  echo "Try: $(basename "${0}") list-stages"
 }
+
+main() {
+  # Parse options
+  local _types=() _tasks=() _help=no
+  while [[ "$#" -gt 0 ]]; do
+    case "$1" in
+      --help)
+        _help=yes
+        ;;
+      --describe)
+        _types+=("DESCRIBE")
+        ;;
+      --execute)
+        _types+=("EXECUTE")
+        ;;
+      -*)
+        echo "Unknown option: $1"
+        show_help
+        return 1
+        ;;
+      *)
+        _tasks+=("$1")
+        ;;
+    esac
+    shift
+  done
+  if [[ "${_help}" == yes || "${#_tasks[@]}" == 0 ]]; then
+    show_help
+    return 0
+  fi
+  if [[ "${#_types[@]}" == 0 ]]; then
+    _types=(EXECUTE)
+  fi
+  for _type in "${_types[@]}"; do
+    perform "${_type}" "${_tasks[@]}"
+  done
+}
+
 main "${@}"
