@@ -12,10 +12,6 @@ public record Session(Playwright playwright, Browser browser, Page page) {
     return "http://localhost:3000/hello";
   }
   
-  public File frontendDirectory() {
-    return new File(new File(System.getProperty("user.dir")).getParentFile(), "frontend");
-  }
-  
   public Session close() {
     try {
       browser.close();

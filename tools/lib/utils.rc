@@ -12,7 +12,7 @@ function abort() {
 function print_stacktrace() {
   local _message="${1}"
   shift
-  echo "${_message}" "${@}" >&2
+  echo -e "${_message}" "${@}" >&2
   local _i=1
   local _e
   while _e="$(caller $_i)"; do
