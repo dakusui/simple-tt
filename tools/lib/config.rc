@@ -15,7 +15,6 @@ function task_definition_for() {
     |.[]' "$(resolve_task_file)"
 }
 
-
 function endpoint_origin() {
     echo "http://localhost:3000"
 }
@@ -28,6 +27,10 @@ function resolve_task_file() {
   echo "$(project_root)/etc/conductor.json"
 }
 
+function resolve_logdir() {
+  echo "$(project_root)/var/log"
+}
+
 function project_root() {
   local _source="${BASH_SOURCE[0]}"
   local _dir
@@ -36,4 +39,3 @@ function project_root() {
   _dir="$(dirname "${_dir}")"
   echo "${_dir}"
 }
-
