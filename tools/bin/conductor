@@ -28,8 +28,9 @@ function __perform_stage() {
       # shellcheck disable=SC2317
       echo "no description available for this stage."
     }
+    [[ -e "${__perform_stage_driver_filename}" ]] || abort "Neither a task nor a driver not found for : '${__perform_stage_stage_name}'"
     # shellcheck disable=SC1090
-    source "${__perform_stage_driver_filename}" || abort "Driver not found: '${__perform_stage_driver_filename}'"
+    source "${__perform_stage_driver_filename}" || abort "Failed to load driver: '${__perform_stage_driver_filename}'"
     if [[ "${_type}" == EXECUTE ]]; then
       (message "EXECUTING:${_stage}:[${*}]" && execute_stage "$@" && message "DONE:${_stage}") || abort "FAILED:${_stage}"
     elif [[ "${_type}" == DESCRIBE ]]; then
@@ -56,19 +57,15 @@ function perform() {
   if [[ "${_type}" != "EXECUTE" && "${_type}" != "DESCRIBE" ]]; then
     abort "Unknown behavior type: '${_type}'"
   fi
-  if [[ "${_first}" == STOP ]]; then
-    perform "${_type}" killall:node:npm "${@}"
-  elif [[ "${_first}" == START ]]; then
-    perform "${_type}" start-frontend:"$(resolve_frontend_basedir)" "${@}"
-  elif [[ "${_first}" == STATUS ]]; then
-    perform "${_type}" is_running "${@}"
-  elif [[ "${_first}" == REFRESH_EXECUTION_ENVIRONMENT ]]; then
-    perform "${_type}" refresh_execution_environment "${@}"
-  elif [[ "${_first}" == ERASE_DATASET ]]; then
-    perform "${_type}" wipe-datasets "${@}"
-  elif [[ "${_first}" == LOAD_DATASET ]]; then
-    perform "${_type}" upload:v2/run-1.json \
-            "${_type}" upload:v2/run-2.json "${@}"
+  if task_defined "${_first}"; then
+    local _task_defs _i
+    read -r -a _task_defs < <(task_definition_for "${_first}")
+    for _i in "${_task_defs[@]}"; do
+      perform "${_type}" "${_i}"
+    done
+    if [[ "${#}" -gt 0 ]]; then
+      perform "${@}"
+    fi
   else
     IFS=':' read -r -a _args <<<"${_first}"
     __perform_stage "${_type}" "${_args[@]}" || exit 1
