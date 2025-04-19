@@ -9,12 +9,10 @@ function task_defined() {
 
 function task_definition_for() {
   local _task="${1}"
-  jq -r --arg key "${_task}" '
-    .tasks
-    | .[$key]
-    | map(select(.args and .args[0]?) | "\(.stage):\(.args[0])")
-    | .[]
-  ' "$(resolve_task_file)"
+  jq -r --arg key "${_task}" '.tasks
+    |.[$key]
+    | map("\(.stage)\((.args // []) | join(":") | if length > 0 then ":" + . else "" end)")
+    |.[]' "$(resolve_task_file)"
 }
 
 

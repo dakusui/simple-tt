@@ -59,7 +59,8 @@ function perform() {
   fi
   if task_defined "${_first}"; then
     local _task_defs _i
-    read -r -a _task_defs < <(task_definition_for "${_first}")
+    mapfile -t _task_defs < <(task_definition_for "${_first}")
+    message "TASK_DEFS:" "${_task_defs[@]}"
     for _i in "${_task_defs[@]}"; do
       perform "${_type}" "${_i}"
     done
@@ -81,7 +82,7 @@ show_help() {
   echo "  --execute    Run a given command (default)"
   echo "  --describe   Describe a given command"
   echo
-  echo "Try: $(basename "${0}") list-stages"
+  echo "Try: $(basename "${0}") list-tasks and list-stages"
 }
 
 main() {
