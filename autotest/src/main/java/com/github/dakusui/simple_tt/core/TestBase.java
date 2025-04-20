@@ -14,12 +14,17 @@ import java.util.LinkedHashMap;
 
 import static com.github.dakusui.simple_tt.core.TestUtils.pageFromSession;
 import static java.util.Collections.synchronizedMap;
+import static jp.co.moneyforward.autotest.framework.internal.InternalUtils.createContext;
 import static jp.co.moneyforward.autotest.framework.utils.InsdogUtils.func;
 import static jp.co.moneyforward.autotest.framework.utils.InsdogUtils.let;
-import static jp.co.moneyforward.autotest.framework.internal.InternalUtils.createContext;
 
 public abstract class TestBase implements AutotestRunner {
   final Context context = createContext();
+  
+  @Named
+  public Scene nop() {
+    return Scene.begin().end();
+  }
   
   @Override
   public ReportingActionPerformer actionPerformer() {
@@ -28,10 +33,11 @@ public abstract class TestBase implements AutotestRunner {
   
   @Named
   @Export({"session", "page"})
+  @DependsOn("datasetIsLoaded")
   @ClosedBy("closeSession")
   public Scene openSession() {
     return Scene.begin()
-                .add("session", let(ExecutionProfile.create().openSession()))
+                .add("session", func(d -> ExecutionProfile.create().openSession()))
                 .add("page", pageFromSession(), "session")
                 .end();
   }

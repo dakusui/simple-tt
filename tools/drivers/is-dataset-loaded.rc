@@ -1,0 +1,14 @@
+function execute_stage() {
+  local _resp _expected_num_items=3
+  _resp="$(curl http://localhost:3000/api/recent-status | jq '.|length')"
+
+  if [[ "${_resp}" == "${_expected_num_items}" ]]; then
+    return 0
+  fi
+  echo "Expecting '${_expected_num_items}' items in recent-status response but it was: '${_resp}'" >&2
+  return 1
+}
+
+function help_stage() {
+  :
+}

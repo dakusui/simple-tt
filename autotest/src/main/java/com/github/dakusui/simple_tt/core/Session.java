@@ -5,13 +5,7 @@ import com.microsoft.playwright.BrowserType;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.Playwright;
 
-import java.io.File;
-
 public record Session(Playwright playwright, Browser browser, Page page) {
-  public String healthCheckEndpointUrl() {
-    return "http://localhost:3000/hello";
-  }
-  
   public Session close() {
     try {
       browser.close();
