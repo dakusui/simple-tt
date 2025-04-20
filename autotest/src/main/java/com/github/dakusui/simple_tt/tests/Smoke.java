@@ -1,7 +1,7 @@
 package com.github.dakusui.simple_tt.tests;
 
 import com.github.dakusui.processstreamer.launchers.CommandLauncher;
-import com.github.dakusui.processstreamer.launchers.CurlClient;
+import com.github.dakusui.processstreamer.launchers.CurlLauncher;
 import com.github.dakusui.simple_tt.core.Session;
 import com.github.dakusui.simple_tt.core.TestBase;
 import com.microsoft.playwright.Page;
@@ -70,13 +70,13 @@ public class Smoke extends TestBase {
   @PreparedBy("nop")
   @PreparedBy("startServer")
   public void frontendIsRunning(@From("session") Session session) {
-    require(value(CurlClient.begin()
-                            .option("-s")
-                            .option("-w", "%{http_code}")
-                            .option("-o", "/dev/null")
-                            .url(session.healthCheckEndpointUrl())
-                            .perform()
-                            .collect(joining()))
+    require(value(CurlLauncher.begin()
+                              .option("-s")
+                              .option("-w", "%{http_code}")
+                              .option("-o", "/dev/null")
+                              .url(session.healthCheckEndpointUrl())
+                              .perform()
+                              .collect(joining()))
                 .toBe()
                 .equalTo("200"));
   }
