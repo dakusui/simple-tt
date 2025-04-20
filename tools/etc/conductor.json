@@ -32,6 +32,11 @@
         "stage": "refresh_execution_environment"
       }
     ],
+    "IS_DATASET_LOADED": [
+      {
+        "stage": "is-dataset-loaded"
+      }
+    ],
     "ERASE_DATASET": [
       {
         "stage": "wipe-datasets"
