@@ -1,6 +1,5 @@
 package com.github.dakusui.simple_tt.tests;
 
-import com.github.dakusui.processstreamer.core.process.CommandInvoker;
 import com.github.dakusui.processstreamer.launchers.CommandLauncher;
 import com.github.dakusui.processstreamer.launchers.CurlClient;
 import com.github.dakusui.simple_tt.core.Session;
@@ -42,6 +41,23 @@ public class Smoke extends TestBase {
                    .forEach(System.out::println);
   }
   
+  @Named
+  public void loadDataset(@From("session") Session session) {
+    CommandLauncher.begin()
+                   .command("conductor")
+                   .arg("LOAD_DATASET")
+                   .perform()
+                   .forEach(System.out::println);
+  }
+  
+  @Named
+  public void eraseDataset(@From("session") Session session) {
+    CommandLauncher.begin()
+                   .command("conductor")
+                   .arg("ERASE_DATASET")
+                   .perform()
+                   .forEach(System.out::println);
+  }
   
   @Named
   public Scene killAll() {
@@ -49,10 +65,11 @@ public class Smoke extends TestBase {
   }
   
   @Named
+  @Export
   @DependsOn("openSession")
   @PreparedBy("nop")
   @PreparedBy("startServer")
-  public void ensureServerIsRunning(@From("session") Session session) {
+  public void frontendIsRunning(@From("session") Session session) {
     require(value(CurlClient.begin()
                             .option("-s")
                             .option("-w", "%{http_code}")
@@ -64,16 +81,14 @@ public class Smoke extends TestBase {
                 .equalTo("200"));
   }
   
-  @DependsOn({"openSession", "ensureServerIsRunning"})
+  @DependsOn({"frontendIsRunning"})
   @Export("page")
   @Named
-  public Scene toHello() {
-    return Scene.begin("page")
-                .add(navigateToHello())
-                .end();
+  public void toHello(@From("page") Page page) {
+    navigateToHello().perform(page, null);
   }
   
-  @DependsOn({"ensureServerIsRunning", "openSession"})
+  @DependsOn({"frontendIsRunning"})
   @Export("page")
   @Named
   public Scene toDashboard() {
@@ -97,7 +112,7 @@ public class Smoke extends TestBase {
                 .end();
   }
   
-  @DependsOn({"ensureServerIsRunning", "openSession"})
+  @DependsOn({"frontendIsRunning"})
   @Export("page")
   @Named
   public void toDashboard$simplerStyle(Page page) {
