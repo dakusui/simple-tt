@@ -11,7 +11,6 @@
       <list>
         <option value="$PROJECT_DIR$/../insdog/pom.xml" />
         <option value="$PROJECT_DIR$/../../valid8j/valid8j/pom.xml" />
-        <option value="$PROJECT_DIR$/../processstreamer/pom.xml" />
         <option value="$PROJECT_DIR$/autotest/pom.xml" />
       </list>
     </option>
