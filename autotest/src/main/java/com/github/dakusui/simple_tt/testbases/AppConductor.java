@@ -1,4 +1,4 @@
-package com.github.dakusui.simple_tt.tests;
+package com.github.dakusui.simple_tt.testbases;
 
 import com.github.dakusui.processstreamer.launchers.CommandLauncher;
 import com.github.dakusui.processstreamer.launchers.CurlLauncher;

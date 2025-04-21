@@ -1,6 +1,8 @@
 package com.github.dakusui.simple_tt.tests;
 
-import com.github.dakusui.simple_tt.core.TestBase;
+import com.github.dakusui.simple_tt.testbases.AppConductor;
+import com.github.dakusui.simple_tt.testbases.BrowserSession;
+import com.github.dakusui.simple_tt.testbases.TestBase;
 import com.microsoft.playwright.Page;
 import jp.co.moneyforward.autotest.framework.action.Scene;
 import jp.co.moneyforward.autotest.framework.annotations.*;
@@ -21,7 +23,15 @@ import static jp.co.moneyforward.autotest.framework.testengine.PlanningStrategy.
     value = {"toHello", "toDashboard", "toDashboard$simplerStyle"},
     afterEach = "screenshot",
     planExecutionWith = DEPENDENCY_BASED))
-public class Smoke extends TestBase implements AppConductor {
+public class Smoke extends TestBase implements BrowserSession, AppConductor {
+  @Named
+  @DependsOn("datasetIsLoaded")
+  @Export({"session", "page"})
+  @ClosedBy("closeSession")
+  public Scene openSession() {
+    return BrowserSession.super.openSession();
+  }
+  
   @DependsOn({"openSession"})
   @Export("page")
   @Named
@@ -63,9 +73,10 @@ public class Smoke extends TestBase implements AppConductor {
   @Named
   @When({"toDashboard$simplerStyle"})
   public void thenTestSuiteOfFirstElementInTestSuiteTableIs_First_$simplerStyle(Page page) {
-    assertStatement(value(page).tableQuery(select("Test Suite").from("body table")
-                                                               .where(term("#", "0"))
-                                                               .$())
+    assertStatement(value(page).tableQuery(select("Test Suite")
+                                               .from("body table")
+                                               .where(term("#", "0"))
+                                               .$())
                                .locatorElementAt(0)
                                .textContent()
                                .toBe()
