@@ -35,9 +35,11 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+frontend.log
 
 # env files (can opt-in for committing if needed)
 autotest/.env
+.env
 
 # vercel
 .vercel
