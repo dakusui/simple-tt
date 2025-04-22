@@ -1,0 +1,5 @@
+function execute_stage() {
+  cd "$(resolve_frontend_basedir)" || return 1
+  nohup npm run dev --no-color > "$(resolve_logdir)/frontend.log"  2>&1 < /dev/null &
+  return 0
+}

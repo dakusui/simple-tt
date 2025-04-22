@@ -1,18 +1,41 @@
+function task_defined() {
+  local _task="${1}"
+  local _defined=false
+  _defined="$(jq '.tasks | has("'"${_task}"'")' "$(resolve_task_file)")"
+  {
+    [[ "${_defined}" == true ]] && return 0
+  } || return 1
+}
+
+function task_definition_for() {
+  local _task="${1}"
+  jq -r --arg key "${_task}" '.tasks
+    |.[$key]
+    | map("\(.stage)\((.args // []) | join(":") | if length > 0 then ":" + . else "" end)")
+    |.[]' "$(resolve_task_file)"
+}
+
 function endpoint_origin() {
     echo "http://localhost:3000"
 }
 
 function resolve_frontend_basedir() {
-  echo "$(project_root)/frontend"
+  echo "$(dirname "$(project_root)")/frontend"
+}
+
+function resolve_task_file() {
+  echo "$(project_root)/etc/conductor.json"
+}
+
+function resolve_logdir() {
+  echo "$(project_root)/var/log"
 }
 
 function project_root() {
   local _source="${BASH_SOURCE[0]}"
   local _dir
   _dir="$(dirname "${_source}")"
+  _dir="$(dirname "${_source}")"
   _dir="$(dirname "${_dir}")"
-  _dir="$(dirname "${_dir}")"
-  _dir="$(readlink "${_dir}")"
   echo "${_dir}"
 }
-

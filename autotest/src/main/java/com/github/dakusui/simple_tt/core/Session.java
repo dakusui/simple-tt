@@ -5,17 +5,7 @@ import com.microsoft.playwright.BrowserType;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.Playwright;
 
-import java.io.File;
-
 public record Session(Playwright playwright, Browser browser, Page page) {
-  public String healthCheckEndpointUrl() {
-    return "http://localhost:3000/hello";
-  }
-  
-  public File frontendDirectory() {
-    return new File(new File(System.getProperty("user.dir")).getParentFile(), "frontend");
-  }
-  
   public Session close() {
     try {
       browser.close();

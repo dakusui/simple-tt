@@ -1,5 +1,0 @@
-function execute_stage() {
-  local _dir="${1}"
-  (cd "${_dir}" &&
-   nohup npm run dev &)
-}

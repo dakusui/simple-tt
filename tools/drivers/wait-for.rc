@@ -5,11 +5,11 @@ function execute_stage() {
   shift;
   _cmd=$(IFS=":"; echo "$*")
   for _i in $(seq 1 "${_times}"); do
-    if (execute "${_cmd}"); then
+    if (perform EXECUTE "${_cmd}"); then
       return 0
     fi
     sleep "${_interval}"
   done
-  (execute "${_cmd}")
+  (perform EXECUTE "${_cmd}")
   return $?
 }

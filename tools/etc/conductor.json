@@ -1,0 +1,60 @@
+{
+  "tasks": {
+    "STOP": [
+      {
+        "stage": "killall",
+        "args": [
+          "node",
+          "npm"
+        ]
+      }
+    ],
+    "START": [
+      {
+        "stage": "start-frontend"
+      },
+      {
+        "stage": "wait-for",
+        "args": [
+          "2",
+          "3",
+          "is-running"
+        ]
+      }
+    ],
+    "STATUS": [
+      {
+        "stage": "is-running"
+      }
+    ],
+    "REFRESH_EXECUTION_STATUS": [
+      {
+        "stage": "refresh_execution_environment"
+      }
+    ],
+    "IS_DATASET_LOADED": [
+      {
+        "stage": "is-dataset-loaded"
+      }
+    ],
+    "ERASE_DATASET": [
+      {
+        "stage": "wipe-datasets"
+      }
+    ],
+    "LOAD_DATASET": [
+      {
+        "stage": "upload",
+        "args": [
+          "v2/run-1.json"
+        ]
+      },
+      {
+        "stage": "upload",
+        "args": [
+          "v2/run-2.json"
+        ]
+      }
+    ]
+  }
+}

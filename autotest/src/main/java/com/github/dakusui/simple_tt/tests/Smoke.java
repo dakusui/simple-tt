@@ -1,8 +1,8 @@
 package com.github.dakusui.simple_tt.tests;
 
-import com.github.dakusui.processstreamer.launchers.CurlClient;
-import com.github.dakusui.simple_tt.core.Session;
-import com.github.dakusui.simple_tt.core.TestBase;
+import com.github.dakusui.simple_tt.testbases.AppConductor;
+import com.github.dakusui.simple_tt.testbases.BrowserSession;
+import com.github.dakusui.simple_tt.testbases.TestBase;
 import com.microsoft.playwright.Page;
 import jp.co.moneyforward.autotest.framework.action.Scene;
 import jp.co.moneyforward.autotest.framework.annotations.*;
@@ -13,12 +13,9 @@ import static com.github.dakusui.simple_tt.cliches.valid8j.web.Valid8JExpectatio
 import static com.github.dakusui.simple_tt.core.TestUtils.navigateToDashboard;
 import static com.github.dakusui.simple_tt.core.TestUtils.navigateToHello;
 import static com.github.valid8j.fluent.Expectations.assertStatement;
-import static com.github.valid8j.fluent.Expectations.require;
-import static java.util.stream.Collectors.joining;
 import static jp.co.moneyforward.autotest.actions.web.TableQuery.Term.term;
 import static jp.co.moneyforward.autotest.actions.web.TableQuery.select;
 import static jp.co.moneyforward.autotest.framework.testengine.PlanningStrategy.DEPENDENCY_BASED;
-import static jp.co.moneyforward.autotest.framework.utils.InsdogUtils.sink;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @AutotestExecution(defaultExecution = @Spec(
@@ -26,54 +23,23 @@ import static jp.co.moneyforward.autotest.framework.utils.InsdogUtils.sink;
     value = {"toHello", "toDashboard", "toDashboard$simplerStyle"},
     afterEach = "screenshot",
     planExecutionWith = DEPENDENCY_BASED))
-public class Smoke extends TestBase {
+public class Smoke extends TestBase implements BrowserSession, AppConductor {
   @Named
-  public Scene nop() {
-    return Scene.begin().end();
+  @DependsOn("datasetIsLoaded")
+  @Export({"session", "page"})
+  @ClosedBy("closeSession")
+  public Scene openSession() {
+    return BrowserSession.super.openSession();
   }
   
-  @Named
-  public Scene unloadDatasets() {
-    return Scene.begin().end();
-  }
-  
-  @Named
-  public Scene loadDatasets() {
-    return Scene.begin().end();
-  }
-  
-  @Named
-  public Scene killAll() {
-    return Scene.begin().end();
-  }
-  
-  @Named
-  @DependsOn("openSession")
-  @PreparedBy("nop")
-  public Scene ensureServerIsRunning() {
-    return Scene.begin("session")
-                .add(sink((Session s) -> require(value(CurlClient.begin()
-                                                                 .option("-s")
-                                                                 .option("-w", "%{http_code}")
-//                                                                 .option("-o", "/dev/null")
-                                                                 .url(s.healthCheckEndpointUrl())
-                                                                 .perform()
-                                                                 .collect(joining()))
-                                                     .toBe()
-                                                     .endingWith("200"))))
-                .end();
-  }
-  
-  @DependsOn({"openSession", "ensureServerIsRunning"})
+  @DependsOn({"openSession"})
   @Export("page")
   @Named
-  public Scene toHello() {
-    return Scene.begin("page")
-                .add(navigateToHello())
-                .end();
+  public void toHello(@From("page") Page page) {
+    navigateToHello().perform(page, null);
   }
   
-  @DependsOn({"ensureServerIsRunning", "openSession"})
+  @DependsOn({"openSession"})
   @Export("page")
   @Named
   public Scene toDashboard() {
@@ -97,7 +63,7 @@ public class Smoke extends TestBase {
                 .end();
   }
   
-  @DependsOn({"ensureServerIsRunning", "openSession"})
+  @DependsOn({"openSession"})
   @Export("page")
   @Named
   public void toDashboard$simplerStyle(Page page) {
@@ -106,14 +72,14 @@ public class Smoke extends TestBase {
   
   @Named
   @When({"toDashboard$simplerStyle"})
-  public void thenTestSuiteOfFirstElementInTestSuiteTableIs_First_$simplerStyle(Page r) {
-    assertStatement(value(r).tableQuery(select("Test Suite")
-                                            .from("body table")
-                                            .where(term("#", "0"))
-                                            .$())
-                            .locatorElementAt(0)
-                            .textContent()
-                            .toBe()
-                            .containing("First"));
+  public void thenTestSuiteOfFirstElementInTestSuiteTableIs_First_$simplerStyle(Page page) {
+    assertStatement(value(page).tableQuery(select("Test Suite")
+                                               .from("body table")
+                                               .where(term("#", "0"))
+                                               .$())
+                               .locatorElementAt(0)
+                               .textContent()
+                               .toBe()
+                               .containing("First"));
   }
 }
