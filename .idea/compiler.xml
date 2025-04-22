@@ -7,14 +7,14 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="autotest" />
+        <module name="autotest-tt" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel>
-    </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="autotest" options="--add-reads com.github.dakusui.autotest=ALL-UNNAMED" />
+      <module name="autotest-tt" options="--add-reads com.github.dakusui.autotest=ALL-UNNAMED" />
       <module name="insdog-all" options="" />
     </option>
   </component>
