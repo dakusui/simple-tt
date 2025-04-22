@@ -16,7 +16,6 @@
     </option>
     <option name="ignoredFiles">
       <set>
-        <option value="$PROJECT_DIR$/../../valid8j/valid8j/pom.xml" />
       </set>
     </option>
   </component>

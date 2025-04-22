@@ -8,21 +8,8 @@
         <outputRelativeToContentRoot value="true" />
         <module name="autotest" />
       </profile>
-      <profile name="Annotation profile for insdog" enabled="true">
-        <sourceOutputDir name="target/generated-sources/annotations" />
-        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
-        <outputRelativeToContentRoot value="true" />
-        <processorPath useClasspath="false">
-          <entry name="$MAVEN_REPOSITORY$/info/picocli/picocli-codegen/4.7.6/picocli-codegen-4.7.6.jar" />
-          <entry name="$MAVEN_REPOSITORY$/info/picocli/picocli/4.7.6/picocli-4.7.6.jar" />
-        </processorPath>
-        <module name="insdog-all" />
-      </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="processstreamer" target="21" />
-      <module name="tests_simple-tt" target="21" />
-      <module name="valid8j" target="1.8" />
     </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
