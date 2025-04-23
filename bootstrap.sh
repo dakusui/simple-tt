@@ -221,6 +221,11 @@ function compose_sdk_rc() {
   "
 }
 
+function compose_dotenv() {
+  # shellcheck disable=SC2016
+  echo 'export PATH="'"$(pwd)"'"/tools/bin:"${PATH}"'
+}
+
 function message() {
   echo "${@}" >&2
 }
@@ -253,6 +258,10 @@ function main() {
   sudo rm -fr .dependencies
   # Performs precheck
   __bootstrap__checkenv "${_precheck_reportdir}"
+
+  ({
+    compose_dotenv > ".env"
+  }) 2>&1 | progress "general"
 
   ({
       mkdir -p "${_project_rcdir}"
