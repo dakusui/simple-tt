@@ -3,3 +3,7 @@ source "$(dirname "$(dirname "${BASH_SOURCE[0]}")")/lib/config.rc"
 function execute_stage() {
   rm -fr "$(resolve_frontend_basedir)/data/test-manager"
 }
+
+function describe_stage() {
+  echo "This removes all the datasets stored by SUT: simplett. ($(resolve_frontend_basedir)/data/test-manager)"
+}
