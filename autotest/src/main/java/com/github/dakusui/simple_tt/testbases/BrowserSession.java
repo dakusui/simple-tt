@@ -2,6 +2,7 @@ package com.github.dakusui.simple_tt.testbases;
 
 import com.github.dakusui.simple_tt.core.ExecutionProfile;
 import com.github.dakusui.simple_tt.core.Session;
+import com.github.dakusui.simple_tt.core.TestUtils;
 import jp.co.moneyforward.autotest.actions.web.Screenshot;
 import jp.co.moneyforward.autotest.framework.action.Scene;
 import jp.co.moneyforward.autotest.framework.annotations.ClosedBy;
@@ -21,7 +22,7 @@ public interface BrowserSession {
                 .add("session",
                      func(d -> ExecutionProfile.create()
                                                .openSession()).describe("Session.openSession"))
-                .add("page", pageFromSession(), "session")
+                .add("page", pageFromSession().andThen(TestUtils.toWaitingPageFunction()), "session")
                 .end();
   }
   

@@ -1,5 +1,7 @@
 package com.github.dakusui.simple_tt.core;
 
+import com.github.dakusui.simple_tt.testbases.TestBase;
+import com.github.valid8j.pcond.forms.Printables;
 import com.microsoft.playwright.Page;
 import jp.co.moneyforward.autotest.framework.action.Act;
 
@@ -19,5 +21,9 @@ public enum TestUtils {
   
   public static Act<Page, Page> navigateToHello() {
     return page(page -> page.navigate("http://localhost:3000/hello")).describe("toHello");
+  }
+  
+  public static Act.Func<Page, Page> toWaitingPageFunction() {
+    return func(Printables.function("toWaitingPage", TestBase::toWaitingPage));
   }
 }

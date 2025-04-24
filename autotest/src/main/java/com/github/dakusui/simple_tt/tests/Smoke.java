@@ -12,7 +12,6 @@ import org.junit.jupiter.api.TestInstance;
 import static com.github.dakusui.simple_tt.cliches.valid8j.web.Valid8JExpectations.value;
 import static com.github.dakusui.simple_tt.core.TestUtils.navigateToDashboard;
 import static com.github.dakusui.simple_tt.core.TestUtils.navigateToHello;
-import static com.github.valid8j.fluent.Expectations.assertStatement;
 import static jp.co.moneyforward.autotest.actions.web.TableQuery.Term.term;
 import static jp.co.moneyforward.autotest.actions.web.TableQuery.select;
 import static jp.co.moneyforward.autotest.framework.testengine.PlanningStrategy.DEPENDENCY_BASED;
@@ -20,7 +19,7 @@ import static jp.co.moneyforward.autotest.framework.testengine.PlanningStrategy.
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @AutotestExecution(defaultExecution = @Spec(
     beforeEach = "screenshot",
-    value = {"toHello", "toDashboard", "toDashboard$simplerStyle"},
+    value = {"toHello", "toDashboard"},
     afterEach = "screenshot",
     planExecutionWith = DEPENDENCY_BASED))
 public class Smoke extends TestBase implements BrowserSession, AppConductor {
@@ -47,7 +46,7 @@ public class Smoke extends TestBase implements BrowserSession, AppConductor {
                 .add(navigateToDashboard())
                 .end();
   }
-  
+
   @Named
   @When({"toDashboard"})
   public Scene thenTestSuiteOfFirstElementInTestSuiteTableIs_First_() {
@@ -61,25 +60,5 @@ public class Smoke extends TestBase implements BrowserSession, AppConductor {
                                                .toBe()
                                                .containing("First"))
                 .end();
-  }
-  
-  @DependsOn({"openSession"})
-  @Export("page")
-  @Named
-  public void toDashboard$simplerStyle(Page page) {
-    page.navigate("http://localhost:3000/dashboard");
-  }
-  
-  @Named
-  @When({"toDashboard$simplerStyle"})
-  public void thenTestSuiteOfFirstElementInTestSuiteTableIs_First_$simplerStyle(Page page) {
-    assertStatement(value(page).tableQuery(select("Test Suite")
-                                               .from("body table")
-                                               .where(term("#", "0"))
-                                               .$())
-                               .locatorElementAt(0)
-                               .textContent()
-                               .toBe()
-                               .containing("First"));
   }
 }
