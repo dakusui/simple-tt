@@ -20,22 +20,22 @@ function endpoint_origin() {
 }
 
 function resolve_frontend_basedir() {
-  echo "$(dirname "$(project_root)")/frontend"
+  echo "$(project_root)/frontend"
 }
 
 function resolve_task_file() {
-  echo "$(project_root)/etc/conductor.json"
+  echo "$(project_root)/tools/etc/conductor.json"
 }
 
 function resolve_logdir() {
-  echo "$(project_root)/var/log"
+  echo "$(project_root)/tools/var/log"
 }
 
 function project_root() {
   local _source="${BASH_SOURCE[0]}"
   local _dir
   _dir="$(dirname "${_source}")"
-  _dir="$(dirname "${_source}")"
+  _dir="$(dirname "${_dir}")"
   _dir="$(dirname "${_dir}")"
   echo "${_dir}"
 }

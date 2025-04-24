@@ -27,17 +27,15 @@
         "stage": "is-running"
       }
     ],
-    "REFRESH_EXECUTION_STATUS": [
-      {
-        "stage": "refresh_execution_environment"
-      }
-    ],
     "IS_DATASET_LOADED": [
       {
         "stage": "is-dataset-loaded"
       }
     ],
     "ERASE_DATASET": [
+      {
+        "stage": "erase-testresults"
+      },
       {
         "stage": "wipe-datasets"
       }

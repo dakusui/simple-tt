@@ -3,7 +3,6 @@ package com.github.dakusui.simple_tt.tests;
 import com.github.dakusui.simple_tt.testbases.AppConductor;
 import com.github.dakusui.simple_tt.testbases.BrowserSession;
 import com.github.dakusui.simple_tt.testbases.TestBase;
-import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 import jp.co.moneyforward.autotest.actions.web.TableQuery;
 import jp.co.moneyforward.autotest.framework.action.Scene;
@@ -23,7 +22,7 @@ import static jp.co.moneyforward.autotest.framework.testengine.PlanningStrategy.
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @AutotestExecution(defaultExecution = @Spec(
     beforeEach = "screenshot",
-    value = { "toDashboard", "clickFirstItemInDashboard", "enterTriageForTheItem"},
+    value = {"toDashboard", "clickFirstItemInDashboard", "enterTriageForTheItem"},
     afterEach = "screenshot",
     planExecutionWith = DEPENDENCY_BASED))
 public class SimplerSmoke extends TestBase implements SimplettSelectorProfile, BrowserSession, AppConductor {
