@@ -57,7 +57,7 @@ function perform() {
     return 0
   fi
   local _type="${1}"
-  local _task="${2}"
+  local _task="${2:?"No task for task type: '${1}'"}"
   shift
   shift
   if [[ "${_type}" != "EXECUTE" && "${_type}" != "DESCRIBE" ]]; then
@@ -65,19 +65,21 @@ function perform() {
   fi
   if task_defined "${_task}"; then
     local _task_defs _i
-    echo -e "\e[1;34mBEGIN TASK:\e[0m  \e[4m${_task}\e[0m" >&2
     mapfile -t _task_defs < <(task_definition_for "${_task}")
+    echo -e "\e[1;34mBEGIN TASK:\e[0m  \e[4m${_task}\e[0m" >&2
     for _i in "${_task_defs[@]}"; do
       perform "${_type}" "${_i}" 2>&1
     done < /dev/null 2>&1
-    if [[ "${#}" -gt 0 ]]; then
-      perform "${@}"
-    fi
     echo -e "\e[1;34mEND TASK:\e[0m    \e[4m${_task}\e[0m" >&2
+    if [[ "${#}" -gt 0 ]]; then
+      perform "${_type}" "${@}"
+    fi
   else
     IFS=':' read -r -a _args <<<"${_task}"
     __perform_stage "${_type}" "${_args[@]}" || exit 1
-    perform "${@}"
+    if [[ "${#}" -gt 0 ]]; then
+      perform "${_type}" "${@}"
+    fi
   fi
 }
 
