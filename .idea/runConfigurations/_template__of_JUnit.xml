@@ -1,12 +1,6 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Smoke" type="JUnit" factoryName="JUnit" activateToolWindowBeforeRun="false" nameIsGenerated="true">
+  <configuration default="true" type="JUnit" factoryName="JUnit">
     <module name="autotest-tt" />
-    <extension name="coverage">
-      <pattern>
-        <option name="PATTERN" value="com.github.dakusui.simple_tt.testbases.*" />
-        <option name="ENABLED" value="true" />
-      </pattern>
-    </extension>
     <extension name="net.ashald.envfile">
       <option name="IS_ENABLED" value="true" />
       <option name="IS_SUBST" value="true" />
@@ -15,11 +9,9 @@
       <option name="IS_ENABLE_EXPERIMENTAL_INTEGRATIONS" value="false" />
       <ENTRIES>
         <ENTRY IS_ENABLED="true" PARSER="runconfig" IS_EXECUTABLE="false" />
-        <ENTRY IS_ENABLED="true" PARSER="env" IS_EXECUTABLE="false" PATH=".env" />
       </ENTRIES>
     </extension>
-    <option name="PACKAGE_NAME" value="com.github.dakusui.simple_tt.tests" />
-    <option name="MAIN_CLASS_NAME" value="com.github.dakusui.simple_tt.tests.Smoke" />
+    <option name="MAIN_CLASS_NAME" value="" />
     <option name="METHOD_NAME" value="" />
     <option name="TEST_OBJECT" value="class" />
     <option name="VM_PARAMETERS" value="-ea --add-opens java.base/java.lang.invoke=ALL-UNNAMED" />
