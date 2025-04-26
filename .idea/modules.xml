@@ -3,7 +3,6 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/frontend/.idea/frontend.iml" filepath="$PROJECT_DIR$/frontend/.idea/frontend.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../insdog/insdog-all.iml" filepath="$PROJECT_DIR$/../insdog/insdog-all.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/simple-tt.iml" filepath="$PROJECT_DIR$/.idea/simple-tt.iml" />
     </modules>
   </component>
