@@ -22,7 +22,7 @@
     <option name="MAIN_CLASS_NAME" value="com.github.dakusui.simple_tt.tests.SimplerSmoke" />
     <option name="METHOD_NAME" value="" />
     <option name="TEST_OBJECT" value="class" />
-    <option name="VM_PARAMETERS" value="-ea --add-opens java.base/java.lang.invoke=ALL-UNNAMED " />
+    <option name="VM_PARAMETERS" value="-ea --add-opens java.base/java.lang.invoke=ALL-UNNAMED" />
     <method v="2">
       <option name="Make" enabled="true" />
     </method>
