@@ -20,6 +20,8 @@ source .env.rc
 
 This sets environment variables, especially `PATH`, with which lets your terminal know where tools (local `brew`, `maven`, etc.) and simple-tt itself are.
 
+## From Command-line
+
 Then, 
 
 ```
@@ -29,3 +31,11 @@ conducter START
 This will start the simple-tt tool.
 You can access the app using your browser at `http://localhost:3000/dashboard`.
 Enjoy!
+
+## From IDE
+
+Open the project root directory with your IDEA.
+To run autotest, you can try **SimplerSmoke** and **Smoke** run configuration.
+
+
+
