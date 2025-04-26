@@ -8,17 +8,6 @@
         <outputRelativeToContentRoot value="true" />
         <module name="autotest-tt" />
       </profile>
-      <profile name="Annotation profile for insdog" enabled="true">
-        <sourceOutputDir name="target/generated-sources/annotations" />
-        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
-        <outputRelativeToContentRoot value="true" />
-        <processorPath useClasspath="false">
-          <entry name="$MAVEN_REPOSITORY$/info/picocli/picocli-codegen/4.7.6/picocli-codegen-4.7.6.jar" />
-          <entry name="$MAVEN_REPOSITORY$/info/picocli/picocli/4.7.6/picocli-4.7.6.jar" />
-          <entry name="$MAVEN_REPOSITORY$/info/picocli/picocli-codegen/4.7.6/picocli-codegen-4.7.6.jar" />
-          <entry name="$MAVEN_REPOSITORY$/info/picocli/picocli/4.7.6/picocli-4.7.6.jar" />
-        </processorPath>
-      </profile>
     </annotationProcessing>
   </component>
   <component name="JavacSettings">
