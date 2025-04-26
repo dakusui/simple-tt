@@ -2,10 +2,7 @@ package com.github.dakusui.simple_tt.testbases;
 
 import com.github.dakusui.processstreamer.launchers.CommandLauncher;
 import com.github.dakusui.processstreamer.launchers.CurlLauncher;
-import jp.co.moneyforward.autotest.framework.annotations.DependsOn;
-import jp.co.moneyforward.autotest.framework.annotations.Export;
-import jp.co.moneyforward.autotest.framework.annotations.Named;
-import jp.co.moneyforward.autotest.framework.annotations.PreparedBy;
+import jp.co.moneyforward.autotest.framework.annotations.*;
 
 import static com.github.dakusui.simple_tt.cliches.valid8j.web.Valid8JExpectations.value;
 import static com.github.valid8j.fluent.Expectations.require;
@@ -58,7 +55,7 @@ public interface AppConductor {
                    .forEach(System.out::println);
   }
   
-  @DependsOn("appIsRunning")
+  @Given("appIsRunning")
   @Named
   default void loadDataset() {
     CommandLauncher.begin()

@@ -5,10 +5,7 @@ import com.github.dakusui.simple_tt.core.Session;
 import com.github.dakusui.simple_tt.core.TestUtils;
 import jp.co.moneyforward.autotest.actions.web.Screenshot;
 import jp.co.moneyforward.autotest.framework.action.Scene;
-import jp.co.moneyforward.autotest.framework.annotations.ClosedBy;
-import jp.co.moneyforward.autotest.framework.annotations.DependsOn;
-import jp.co.moneyforward.autotest.framework.annotations.Export;
-import jp.co.moneyforward.autotest.framework.annotations.Named;
+import jp.co.moneyforward.autotest.framework.annotations.*;
 
 import static com.github.dakusui.simple_tt.core.TestUtils.pageFromSession;
 import static jp.co.moneyforward.autotest.framework.utils.InsdogUtils.func;
@@ -27,7 +24,7 @@ public interface BrowserSession {
   }
   
   @Named
-  @DependsOn("openSession")
+  @Given("openSession")
   default Scene closeSession() {
     return Scene.begin()
                 .add("NONE", func(Session::close).describe("Session#closeSession"), "session")
@@ -35,7 +32,7 @@ public interface BrowserSession {
   }
   
   @Named
-  @DependsOn("openSession")
+  @Given("openSession")
   default Scene screenshot() {
     return Scene.begin()
                 .add("page", pageFromSession().andThen(new Screenshot()), "session")
