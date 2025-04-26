@@ -27,14 +27,14 @@ import static jp.co.moneyforward.autotest.framework.testengine.PlanningStrategy.
     planExecutionWith = DEPENDENCY_BASED))
 public class SimplerSmoke extends TestBase implements SimplettSelectorProfile, BrowserSession, AppConductor {
   @Named
-  @DependsOn("datasetIsLoaded")
+  @Given("datasetIsLoaded")
   @Export({"session", "page"})
   @ClosedBy("closeSession")
   public Scene openSession() {
     return BrowserSession.super.openSession();
   }
   
-  @DependsOn({"openSession"})
+  @Given({"openSession"})
   @Export("page")
   @Named
   public void toDashboard(Page page) {
@@ -54,7 +54,7 @@ public class SimplerSmoke extends TestBase implements SimplettSelectorProfile, B
                                .containing("First"));
   }
   
-  @DependsOn({"toDashboard"})
+  @Given({"toDashboard"})
   @Named
   public void clickFirstItemInDashboard(Page page) {
     TableQuery.select("#")
@@ -66,7 +66,7 @@ public class SimplerSmoke extends TestBase implements SimplettSelectorProfile, B
               .click();
   }
   
-  @DependsOn({"clickFirstItemInDashboard"})
+  @Given({"clickFirstItemInDashboard"})
   @Named
   public void clickFirstItemInTestRuns(Page page) {
     System.out.println("page:" + page);
@@ -79,7 +79,7 @@ public class SimplerSmoke extends TestBase implements SimplettSelectorProfile, B
               .click();
   }
   
-  @DependsOn({"clickFirstItemInTestRuns"})
+  @Given({"clickFirstItemInTestRuns"})
   @Named
   public void enterTriageForTheItem(Page page) {
     page.locator(triageTextArea())

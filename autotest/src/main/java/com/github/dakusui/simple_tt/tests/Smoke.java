@@ -24,21 +24,21 @@ import static jp.co.moneyforward.autotest.framework.testengine.PlanningStrategy.
     planExecutionWith = DEPENDENCY_BASED))
 public class Smoke extends TestBase implements BrowserSession, AppConductor {
   @Named
-  @DependsOn("datasetIsLoaded")
+  @Given("datasetIsLoaded")
   @Export({"session", "page"})
   @ClosedBy("closeSession")
   public Scene openSession() {
     return BrowserSession.super.openSession();
   }
   
-  @DependsOn({"openSession"})
+  @Given({"openSession"})
   @Export("page")
   @Named
   public void toHello(@From("page") Page page) {
     navigateToHello().perform(page, null);
   }
   
-  @DependsOn({"openSession"})
+  @Given({"openSession"})
   @Export("page")
   @Named
   public Scene toDashboard() {
