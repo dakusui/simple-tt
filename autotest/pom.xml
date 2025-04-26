@@ -14,15 +14,10 @@
     <!-- BEGIN: test dependencies -->
     <!-- END: test dependencies -->
 
-    <insdog-all.version>0.5.2</insdog-all.version>
+    <insdog-all.version>0.6.0-preview-1</insdog-all.version>
     <valid8j.version>2.1.7</valid8j.version>
   </properties>
   <dependencies>
-    <dependency>
-      <groupId>com.microsoft.playwright</groupId>
-      <artifactId>playwright</artifactId>
-      <version>1.49.0</version>
-    </dependency>
     <dependency>
       <groupId>com.github.dakusui</groupId>
       <artifactId>insdog-all</artifactId>
