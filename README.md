@@ -38,7 +38,7 @@ Enjoy!
 ## From IDE
 
 Open the project root directory with your IDEA.
-To run autotest, you can try **SimplerSmoke** and **Smoke** run configuration.
+To run autotest, you can try **SimplerSmoke** and **Smoke** run configurations.
 
 
 
