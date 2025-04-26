@@ -25,11 +25,14 @@ This sets environment variables, especially `PATH`, with which lets your termina
 Then, 
 
 ```
-conducter START
+conductor START
 ```
 
 This will start the simple-tt tool.
 You can access the app using your browser at `http://localhost:3000/dashboard`.
+
+`conductor` is a useful tool to orchestrate the application, its backend, and dataset states.
+Try `conductor --help`, `conductor list-tasks`, or `conductor list-stages` to know more.
 Enjoy!
 
 ## From IDE
