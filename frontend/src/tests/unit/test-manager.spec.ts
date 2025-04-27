@@ -105,7 +105,7 @@ Given<void, TestManager>()(
       const ret: TestCaseRunWithTriage[] = [];
       for (const eachTestSuiteId of testManager.testSuites()) {
         for (const eachTestCaseId of testManager.testCasesFor(eachTestSuiteId)) {
-          ret.push(testManager.retrieveLastTestCaseRunWithLastTriage(eachTestSuiteId, eachTestCaseId));
+          ret.push(testManager.retrieveTestCaseRunWithLastTriage(eachTestSuiteId, eachTestCaseId));
         }
       }
       return ret;
@@ -212,7 +212,7 @@ Given<void, [TestManager, string, string]>()(
     "fetchTestCaseState(...) is called",
     context => {
       const [testManager, testSuiteId, testCaseId] = context;
-      return testManager.retrieveLastTestCaseRunWithLastTriage(testSuiteId, testCaseId);
+      return testManager.retrieveTestCaseRunWithLastTriage(testSuiteId, testCaseId);
     },
     Then<TestCaseRunWithTriage>("returned TestCaseState with a triage note", testCaseState => {
       expect(testCaseState).toBeTruthy();
