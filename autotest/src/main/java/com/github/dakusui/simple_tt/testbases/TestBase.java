@@ -44,7 +44,7 @@ public abstract class TestBase implements AutotestRunner {
     return new ObjectSynthesizer().addInterface(Locator.class)
                                   .handle(methodCall("count").with((ignored, args) -> {
                                     System.out.println("Locator: Intercepting count method: " + locator);
-                                    waitForStableIntValue(locator::count, 5000, 3, 150);
+                                    waitForStableIntValue(locator::count, 10_000, 3, 150);
                                     return locator.count();
                                   }))
                                   .handle(methodCall("click", Locator.ClickOptions.class).with((ignored, args) -> {
