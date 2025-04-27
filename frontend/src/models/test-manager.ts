@@ -14,9 +14,11 @@ import {
   TriageNote
 } from "./test-entities";
 import { ensureDirectoryExists, readObjectFromJson, saveFile } from "./utils";
+import * as console from "node:console";
 
 class SequenceGenerator {
   private atomicValue = new Int32Array(new SharedArrayBuffer(4));
+
   constructor(initial: number) {
     Atomics.store(this.atomicValue, 0, initial);
   }
@@ -25,6 +27,7 @@ class SequenceGenerator {
     return Atomics.add(this.atomicValue, 0, 1);
   }
 }
+
 const testManagerDataDir: string = path.join(process.cwd(), "data", "test-manager");
 const testManagerRunDir: string = path.join(testManagerDataDir, "runs");
 const sequenceGeneratorForRunId = new SequenceGenerator(readdirSync(testManagerRunDir).length);
@@ -35,7 +38,7 @@ export async function storeTestRun(jsonData: object): Promise<string> {
 }
 
 export async function fetchRecentStatuses(): Promise<TestCaseRunWithTriage[]> {
-  console.log("fetchRecentStatuses")
+  console.log("fetchRecentStatuses");
   // Mock data for testing, replace with actual data fetching logic
   const testManager: TestManager = new TestManager(testManagerDataDir);
   return testManager.retrieveLatestTestCaseStates();
@@ -98,7 +101,8 @@ export async function fetchTriage(runId: string, testSuiteId: string, testCaseId
  *
  */
 export class TestManager {
-  constructor(public baseDir: string) {}
+  constructor(public baseDir: string) {
+  }
 
   retrieveLatestTestCaseStates(): TestCaseRunWithTriage[] {
     return this.testSuites()
@@ -106,7 +110,7 @@ export class TestManager {
         return this.testCasesFor(testSuiteId).map(testCaseId => [testSuiteId, testCaseId]);
       })
       .map(v => {
-        return this.retrieveLastTestCaseRunWithLastTriage(v[0], v[1]);
+        return this.retrieveTestCaseRunWithLastTriage(v[0], v[1]);
       });
   }
 
@@ -129,18 +133,14 @@ export class TestManager {
       });
   }
 
-  retrieveLastTestCaseRunWithLastTriage(testSuiteId: string, testCaseId: string): TestCaseRunWithTriage {
+  retrieveTestCaseRunWithLastTriage(testSuiteId: string, testCaseId: string): TestCaseRunWithTriage {
     const lastRun: TestCaseRun | undefined = this.retrieveLastRunFor(testSuiteId, testCaseId) ?? undefined;
     const lastResult: string | undefined = (lastRun?.result as string) ?? undefined;
     const lastStartDate: Date | undefined = (lastRun?.duration.start as Date) ?? undefined;
     const lastElapsedTime: number | undefined = lastRun?.duration.elapsedTime();
-    const lastTriageNote: TriageNote | undefined = this.existsTriage(
-      this.lastRunIdFor(testSuiteId, testCaseId) as string,
-      testSuiteId,
-      testCaseId
-    )
-      ? this.retrieveLastTriageFor(testSuiteId, testCaseId)?.note
-      : undefined;
+    //const lastTriagedRunId: string | undefined = this.lastTriagedRunIdFor(testSuiteId, testCaseId);
+    //console.log("retrieveTestCaseRunWithLastTriage: testSuiteId:<" + testSuiteId + ">, testCaseId:<" + testCaseId + ">, lastTriagedRunId:<" + lastTriagedRunId + ">");
+    const lastTriageNote: TriageNote | undefined = this.retrieveLastTriageFor(testSuiteId, testCaseId);
     return createTestCaseRunWithTriage(
       testSuiteId,
       testCaseId,
@@ -157,10 +157,10 @@ export class TestManager {
     return null;
   }
 
-  retrieveLastTriageFor(testSuiteId: string, testCaseId: string): Triage | null {
-    const lastTriagedRunId: string | null = this.lastTriagedRunIdFor(testSuiteId, testCaseId);
-    if (lastTriagedRunId != null) return this.retrieveTriage(lastTriagedRunId, testSuiteId, testCaseId);
-    return null;
+  retrieveLastTriageFor(testSuiteId: string, testCaseId: string): TriageNote | undefined {
+    const lastTriagedRunId: string | undefined = this.lastTriagedRunIdFor(testSuiteId, testCaseId);
+    if (lastTriagedRunId != undefined) return this.retrieveTriage(lastTriagedRunId, testSuiteId, testCaseId).note;
+    return undefined;
   }
 
   retrieveTriageFor(runId: string, testSuiteId: string, testCaseId: string): Triage | null {
@@ -183,8 +183,6 @@ export class TestManager {
 
   storeRunSet(testRunSet: TestRunSet): string {
     const runId: string = this.generateRunId();
-    const env: TestEnvironment = testRunSet.environment;
-
     for (const eachTestCaseRun of testRunSet.runs) {
       this.ensureDefinitionExists(eachTestCaseRun);
       const pathForTestCaseRun = this.pathForTestCaseRun(
@@ -197,7 +195,7 @@ export class TestManager {
         pathForTestCaseRun,
         superjson.stringify({
           result: eachTestCaseRun.result,
-          environment: env,
+          environment: testRunSet.environment,
           duration: eachTestCaseRun.duration
         })
       );
@@ -228,7 +226,7 @@ export class TestManager {
   removeTriage(runId: string, testSuiteId: string, testCaseId: string) {
     const triageFile: string = this.triageFilePath(runId, testSuiteId, testCaseId);
     if (existsSync(triageFile)) {
-       rmSync(triageFile);
+      rmSync(triageFile);
     }
   }
 
@@ -241,19 +239,26 @@ export class TestManager {
   }
 
   triagedRuns(): string[] {
-    return this.listIdentifiers(this.triagesDir(), "run-", "run-");
+    console.log("triagedRuns: triagesDir:<" + this.triagesDir() + ">");
+    const ret: string[] = this.listIdentifiers(this.triagesDir(), "run-", "run-");
+    console.log("triagedRuns: triaged run ids:<" + ret + ">");
+    return ret;
   }
 
   runs(): string[] {
-    return this.listIdentifiers(this.runsDir(), "run-", /^run-/);
+    const ret: string[] = this.listIdentifiers(this.runsDir(), "run-", /^run-/);
+    console.log("run ids:<" + ret + ">");
+    return ret;
   }
 
   testSuitesForRun(runId: string): string[] {
     return this.listIdentifiers(this.runDirFor(runId), "testSuite-", "testSuite-");
   }
 
-  testCasesForRun(runId: string, testSuiteId): string[] {
-    return this.listIdentifiers(path.join(this.runDirFor(runId), "testSuite-" + testSuiteId), "run-");
+  testCasesForRun(runId: string, testSuiteId: string): string[] {
+    const ret : string[] =  this.listIdentifiers(path.join(this.runDirFor(runId), "testSuite-" + testSuiteId), "testCase-",   "testCase-", /^testCase-/, /.json$/);
+    console.log("testCasesForRun: runDir=" + this.runDirFor(runId) + "; ret:<" + ret + ">; runId:" + runId + "; testSuiteId:" + testSuiteId + ";");
+    return ret;
   }
 
   existsTestCaseRun(runId: string, testSuiteId: string, testCaseId: string): boolean {
@@ -283,16 +288,21 @@ export class TestManager {
     return runIds.length > 0 ? runIds[0] : null;
   }
 
-  private lastTriagedRunIdFor(testSuiteId: string, testCaseId: string): string | null {
+  private lastTriagedRunIdFor(testSuiteId: string, testCaseId: string): string | undefined {
     const triagedRunIds: string[] = this.triagedRuns()
       .filter(r => {
-        return this.existsTestCaseRun(r, testSuiteId, testCaseId);
-      })
-      .sort()
-      .reverse();
-    return triagedRunIds.length > 0 ? triagedRunIds[0] : null;
+        const ret: boolean =  this.existsTriage(r, testSuiteId, testCaseId);
+        console.log("lastTriagedRunIdFor:testCaseId:<" + testCaseId + ">:ret:<" + ret + ">");
+        return ret;
+      });
+    console.log("lastTriagedRunIdFor:triaged run ids:<" + triagedRunIds + ">");
+    return triagedRunIds.length > 0 ? triagedRunIds[triagedRunIds.length - 1] : undefined;
   }
 
+  // Returns identifies computed from entry names under a given `base` directory.
+  // This function select entries under a given `base` directory starting with `prefix`.
+  // An id in the returned array is computed by replacing matching part in the entry with "".
+  // The matching part comes from the `extras`.
   private listIdentifiers(base: string, prefix: string, ...extras: (RegExp | string)[]): string[] {
     if (existsSync(base))
       return readdirSync(base)
