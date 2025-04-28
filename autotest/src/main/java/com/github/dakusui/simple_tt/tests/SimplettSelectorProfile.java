@@ -10,7 +10,7 @@ public interface SimplettSelectorProfile {
   }
   
   default String testSuitesTable() {
-    return "body table";
+    return "body > div > div:nth-child(1) > div > table";
   }
   
   default String testRunsTable() {

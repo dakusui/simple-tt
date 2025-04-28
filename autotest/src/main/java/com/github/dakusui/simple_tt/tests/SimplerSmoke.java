@@ -81,10 +81,26 @@ public class SimplerSmoke extends TestBase implements SimplettSelectorProfile, B
   
   @Given({"clickFirstItemInTestRuns"})
   @Named
-  public void enterTriageForTheItem(Page page) {
+  @To("triageNote")
+  public String enterTriageForTheItem(Page page) {
+    String ret = "Hello:" + new Date(currentTimeMillis());
     page.locator(triageTextArea())
-        .fill("Hello:" + new Date(currentTimeMillis()));
+        .fill(ret);
     
     page.locator(saveChangesButton()).click();
+    return ret;
+  }
+  
+  @When({"enterTriageForTheItem"})
+  @Named
+  public void thenTriageNoteIsUpdated(@From("page") Page page, @From("triageNote") String triageNote) {
+    assertStatement(value(page).tableQuery(select("Triage")
+                                               .from(testSuitesTable())
+                                               .where(term("#", "0"))
+                                               .$())
+                               .locatorElementAt(0)
+                               .textContent()
+                               .toBe()
+                               .containing(triageNote));
   }
 }
