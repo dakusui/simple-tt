@@ -2,6 +2,7 @@ package com.github.dakusui.simple_tt.tests;
 
 import com.github.dakusui.simple_tt.testbases.AppConductor;
 import com.github.dakusui.simple_tt.testbases.BrowserSession;
+import com.github.dakusui.simple_tt.testbases.Core;
 import com.github.dakusui.simple_tt.testbases.TestBase;
 import com.microsoft.playwright.Page;
 import jp.co.moneyforward.autotest.framework.action.Scene;
@@ -22,7 +23,7 @@ import static jp.co.moneyforward.autotest.framework.testengine.PlanningStrategy.
     value = {"toHello", "toDashboard"},
     afterEach = "screenshot",
     planExecutionWith = DEPENDENCY_BASED))
-public class Smoke extends TestBase implements BrowserSession, AppConductor {
+public class Smoke extends TestBase implements Core, BrowserSession, AppConductor {
   @Named
   @Given("datasetIsLoaded")
   @Export({"session", "page"})

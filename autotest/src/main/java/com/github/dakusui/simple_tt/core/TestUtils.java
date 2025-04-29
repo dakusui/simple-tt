@@ -1,6 +1,6 @@
 package com.github.dakusui.simple_tt.core;
 
-import com.github.dakusui.simple_tt.testbases.TestBase;
+import com.github.dakusui.simple_tt.testbases.BrowserSession;
 import com.github.valid8j.pcond.forms.Printables;
 import com.microsoft.playwright.Page;
 import jp.co.moneyforward.autotest.framework.action.Act;
@@ -24,6 +24,6 @@ public enum TestUtils {
   }
   
   public static Act.Func<Page, Page> toWaitingPageFunction() {
-    return func(Printables.function("toWaitingPage", TestBase::toWaitingPage));
+    return func(Printables.function("toWaitingPage", BrowserSession::toWaitingPage));
   }
 }
