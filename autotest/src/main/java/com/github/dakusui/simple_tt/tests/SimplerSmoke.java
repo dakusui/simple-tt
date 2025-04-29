@@ -2,6 +2,7 @@ package com.github.dakusui.simple_tt.tests;
 
 import com.github.dakusui.simple_tt.testbases.AppConductor;
 import com.github.dakusui.simple_tt.testbases.BrowserSession;
+import com.github.dakusui.simple_tt.testbases.Core;
 import com.github.dakusui.simple_tt.testbases.TestBase;
 import com.microsoft.playwright.Page;
 import jp.co.moneyforward.autotest.actions.web.TableQuery;
@@ -25,7 +26,7 @@ import static jp.co.moneyforward.autotest.framework.testengine.PlanningStrategy.
     value = {"toDashboard", "clickFirstItemInDashboard", "enterTriageForTheItem"},
     afterEach = "screenshot",
     planExecutionWith = DEPENDENCY_BASED))
-public class SimplerSmoke extends TestBase implements SimplettSelectorProfile, BrowserSession, AppConductor {
+public class SimplerSmoke extends TestBase implements SimplettSelectorProfile, Core, BrowserSession, AppConductor {
   @Named
   @Given("datasetIsLoaded")
   @Export({"session", "page"})
