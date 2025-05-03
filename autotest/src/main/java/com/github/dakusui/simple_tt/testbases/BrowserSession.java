@@ -9,7 +9,10 @@ import com.microsoft.playwright.Page;
 import com.microsoft.playwright.options.LoadState;
 import jp.co.moneyforward.autotest.actions.web.Screenshot;
 import jp.co.moneyforward.autotest.framework.action.Scene;
-import jp.co.moneyforward.autotest.framework.annotations.*;
+import jp.co.moneyforward.autotest.framework.annotations.ClosedBy;
+import jp.co.moneyforward.autotest.framework.annotations.Export;
+import jp.co.moneyforward.autotest.framework.annotations.Given;
+import jp.co.moneyforward.autotest.framework.annotations.Named;
 
 import java.util.function.IntSupplier;
 
@@ -18,20 +21,19 @@ import static com.github.dakusui.simple_tt.core.TestUtils.pageFromSession;
 import static jp.co.moneyforward.autotest.framework.utils.InsdogUtils.func;
 
 public interface BrowserSession {
-  static Page toWaitingPage(Page page) {
+  static Page toWaitingPage(Page page, WaitingProfile waitingProfile) {
     return new ObjectSynthesizer().addInterface(Page.class)
                                   .handle(methodCall("locator", String.class, Page.LocatorOptions.class)
                                               .with((ignored, args) -> {
-                                                page.waitForLoadState(LoadState.LOAD);
+                                                waitingProfile.locator(page, (String) args[0], (Page.LocatorOptions) args[1]);
                                                 var locator = page.locator((String) args[0], (Page.LocatorOptions) args[1]);
                                                 System.out.println("Intercepted: Page#locator: " + locator);
-                                                return toWaitingLocator(page, locator);
+                                                return toWaitingLocator(page, locator, waitingProfile);
                                               }))
-                                  .handle(methodCall("click", String.class)
+                                  .handle(methodCall("click", String.class, Page.ClickOptions.class)
                                               .with((ignored, args) -> {
-                                                page.waitForLoadState(LoadState.LOAD);
-                                                page.click((String) args[0]);
-                                                page.waitForLoadState(LoadState.LOAD);
+                                                waitingProfile.click(page, (String) args[0], (Page.ClickOptions) args[1]);
+                                                page.click((String) args[0], (Page.ClickOptions) args[1]);
                                                 return null;
                                               }))
                                   .fallbackTo(page)
@@ -39,30 +41,20 @@ public interface BrowserSession {
                                   .castTo(Page.class);
   }
   
-  static Locator toWaitingLocator(Page page, Locator locator) {
+  static Locator toWaitingLocator(Page page, Locator locator, WaitingProfile waitingProfile) {
     return new ObjectSynthesizer().addInterface(Locator.class)
                                   .handle(methodCall("count").with((ignored, args) -> {
-                                    System.out.println("Locator: Intercepting count method: " + locator);
-                                    waitForStableIntValue(locator::count, 10_000, 3, 100);
+                                    waitingProfile.count(page, locator);
                                     return locator.count();
                                   }))
                                   .handle(methodCall("click", Locator.ClickOptions.class).with((ignored, args) -> {
-                                    System.out.println("Locator: Intercepting click method: " + locator);
-                                    page.waitForLoadState(LoadState.LOAD);
+                                    waitingProfile.click(page, locator, (Locator.ClickOptions) args[0]);
                                     locator.click((Locator.ClickOptions) args[0]);
                                     return null;
                                   }))
                                   .handle(methodCall("fill", String.class, Locator.FillOptions.class).with((ignored, args) -> {
-                                    System.out.println("Locator: Intercepting fill method: " + locator);
-                                    // The last resort...
-                                    Thread.sleep(200);
-                                    // locator.focus(); didn't work
-                                    //page.waitForLoadState(LoadState.LOAD); NG alone
-                                    //locator.waitFor(); NG alone
-                                    //NG even in combination
-                                    //page.waitForLoadState(LoadState.LOAD);
-                                    //locator.waitFor();
-                                    locator.fill((String)args[0], (Locator.FillOptions) args[1]);
+                                    waitingProfile.fill(page, locator, (String) args[0], (Locator.FillOptions) args[1]);
+                                    locator.fill((String) args[0], (Locator.FillOptions) args[1]);
                                     return null;
                                   }))
                                   .fallbackTo(locator)
